@@ -13,6 +13,15 @@
                         "2": "green",
                         "3": "green"
                     }
+                },
+                {
+                    "guess": "hush",
+                    "colors": {
+                        "0": "green",
+                        "1": "green",
+                        "2": "green",
+                        "3": "green"
+                    }
                 }
             ]
         },
@@ -24,8 +33,8 @@
             }
         ],
         "record": {
-            "wins": 0,
-            "guess_count": 0
+            "wins": 1,
+            "guess_count": 1
         }
     },
     {
@@ -36,6 +45,37 @@
         "seen_words": [],
         "record": {
             "wins": 0,
+            "guess_count": 0
+        }
+    },
+    {
+        "name": "jared",
+        "current_word_index": 47,
+        "current_word": {
+            "word": "waddle",
+            "guesses": [
+                {
+                    "guess": "waddle",
+                    "colors": {
+                        "0": "green",
+                        "1": "green",
+                        "2": "green",
+                        "3": "green",
+                        "4": "green",
+                        "5": "green"
+                    }
+                }
+            ]
+        },
+        "game_in_progress": true,
+        "seen_words": [
+            {
+                "word": "waddle",
+                "guesses": []
+            }
+        ],
+        "record": {
+            "wins": 1,
             "guess_count": 0
         }
     }

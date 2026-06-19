@@ -1,3 +1,4 @@
+#!/Users/748003/.local/share/virtualenvs/all-jar-guess-the-word-cli-zwy-5sE6/bin/python  
 import sys
 import argparse
 import random
@@ -57,6 +58,7 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def load_players():
     try:
         json_data = '' 
@@ -68,6 +70,7 @@ def load_players():
     except ValidationError as e:
         print("Error: Invalid Json") 
 
+
 def write_players(registered_players):
     try:
         adapter = TypeAdapter(list[Player])
@@ -77,31 +80,21 @@ def write_players(registered_players):
     except FileNotFoundError:
         print("Error: File Not Found")
 
-def main():
-    registered_players = load_players()    
-    args = parse_args()
-
-    if args.command == 'register':
-        print('register')
-        register(args.player_name, registered_players)
-    elif args.command == 'new-game':
-        print('new-game')
-        new_game(args.player_name, registered_players)
-    elif args.command == 'guess':
-        print('guess')
-        guess(args.player_name, args.word, registered_players)
-    elif args.command == 'board':
-        print('board')
-        print_board(find_player(args.player_name, registered_players)[1])
-    elif args.command == 'leaderboard':
-        print('leaderboard')
-        leaderboard(registered_players)
-
-    write_players(registered_players)
 
 def find_player(player_name, registered_players):
     i = next(i for i, player in enumerate(registered_players) if player.name == player_name)
     return i, registered_players[i]
+
+
+def player_to_list(player, idx, registered_players):
+    registered_players[idx] = Player(name=player.name,
+                                   current_word_index=player.current_word_index,
+                                   current_word=player.current_word,
+                                   game_in_progress=player.game_in_progress,
+                                   seen_words=player.seen_words,
+                                   record=player.record)
+    return registered_players[idx]
+
 
 def register(player_name, registered_players):
     # if player name is empty
@@ -147,16 +140,10 @@ def new_game(player_name, registered_players):
         sys.exit(1)
 
     word_idx = select_word(player)
-    registered_players[i] = Player(name=player.name, 
-                                   current_word_index=word_idx, 
-                                   current_word=player.current_word, 
-                                   game_in_progress=True, 
-                                   record=player.record, 
-                                   seen_words=player.seen_words)
-    
-    player = registered_players[i]
+    player.current_word_index = word_idx
+    player.game_in_progress = True
+    player = player_to_list(player, i, registered_players)
     print_board(player)
-
 
 def select_word(player):
     # pick a random word from the word list that the player has not seen before
@@ -172,7 +159,7 @@ def select_word(player):
     return idx
 
 def guess(player_name, guess_string, registered_players):
-    i, player = find_player(player_name, registered_players) 
+    idx, player = find_player(player_name, registered_players) 
 
     # if game has not started yet
     if player.game_in_progress == False:
@@ -222,7 +209,8 @@ def guess(player_name, guess_string, registered_players):
 
     new_guess = Guess(guess=guess_string, colors=colors)
     player.current_word.guesses.append(new_guess)
-    
+    player_to_list(player, idx, registered_players)
+
 def guess_validation(guess_string, word):
     # checks the length of the guess
     if len(guess_string) < len(word) or len(guess_string) > len(word):
@@ -252,7 +240,7 @@ def print_board(player):
             print_board_line(guess)
 
         for i in range(6 - len(player.current_word.guesses)):
-            print_empty_board_line()
+            print_empty_board_line(count)
 
 def print_empty_board_line(count):
     for i in range(count):
@@ -289,6 +277,28 @@ def leaderboard(registered_players):
 
 def player_sort(registered_players):
     least_guesses = min(player.record.guess_count for player in registered_players)
+
+def main():
+    registered_players = load_players()    
+    args = parse_args()
+
+    if args.command == 'register':
+        print('register')
+        register(args.player_name, registered_players)
+    elif args.command == 'new-game':
+        print('new-game')
+        new_game(args.player_name, registered_players)
+    elif args.command == 'guess':
+        print('guess')
+        guess(args.player_name, args.word, registered_players)
+    elif args.command == 'board':
+        print('board')
+        print_board(find_player(args.player_name, registered_players)[1])
+    elif args.command == 'leaderboard':
+        print('leaderboard')
+        leaderboard(registered_players)
+
+    write_players(registered_players)
 
 if __name__ == "__main__":
     main()
