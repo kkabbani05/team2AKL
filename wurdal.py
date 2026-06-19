@@ -168,10 +168,15 @@ def guess(player, guess, registered_players):
         print("Error: No active game")
         sys.exit(1)
 
+    # if player does not exist
+    if player not in registered_players:
+        print("Error: Player not found")
+        sys.exit(1)
+
     word = player.current_word.word
 
     # guess validation
-    guess_validation(guess, word)
+    guess_validation(guess_string, word)
 
     if guess == word:
         player.record.wins += 1
@@ -190,19 +195,19 @@ def guess(player, guess, registered_players):
     # if green -1 for dict count
     # second iteration for yellow - if in dict and not in green and count > 0 add yellow and yellow idx, else add grey
     colors = {}
-    for i, c in enumerate(guess):
-        if c in player.current_word.word:
-            # dict check
-            # if in dict check count
-                # if count == 0 
-                    # add grey
-                    # online
-                    # xxxxee
-                # else add yellow and yellow idx
-            yellow.append(c)
-            yellow_idx.append(i)
+    tally = dict()
+    for c in word:
+        if c in tally:
+            tally[c] += 1
         else:
-            grey.append(c)
+            tally[c] = 1
+
+    colors = dict()
+    # check one to one positions for green tiles
+    for i, c in enumerate(guess):
+        if c == word[i]:
+            colors[i] = "green"
+            tally[c] -= 1
 
     # check if in position (set to green)
     for idx in yellow_idx:
@@ -211,16 +216,26 @@ def guess(player, guess, registered_players):
             yellow.remove(guess[idx])
 
     new_guess = Guess(guess_str, colors)
+    # check for yellow
+    for i, c in enumerate(guess):
+        if i not in colors:
+            if c in word and tally[c] > 0:
+                colors[i] = "yellow"
+                tally[c] -= 1
+            else:
+                colors[i] = "grey"
+
+    new_guess = Guess(guess_string, colors)
     player.current_word.guesses.append(new_guess)
     
-def guess_validation(guess, word):
+def guess_validation(guess_string, word):
     # checks the length of the guess
-    if guess < len(word) or guess > len(word):
+    if len(guess_string) < len(word) or len(guess_string) > len(word):
         print("Error: Invalid guess")
         sys.exit(1)
     
     # checks if the guess is all letters
-    if guess.isalpha() == False:
+    if guess_string.isalpha() == False:
         print("Error: Invalid guess")
         sys.exit(1)
 
@@ -230,14 +245,13 @@ def print_board(player):
         print("Error: No active game")
         sys.exit(1)
         
-
     # if player has not made any guesses yet, print empty board
-    if player.current_guesses == []:
+    if len(player.current_word.guesses) == 0:
         for i in range(6):
             print_empty_board_line()
     else:
         # print game with guesses
-        for guess in player.current_guesses:
+        for guess in player.current_word.guesses:
             print_board_line(guess)
 
         for i in range(6 - len(player.current_guesses)):
@@ -252,12 +266,20 @@ def print_board_line(guess):
     print("*****  *****  *****  *****  *****")
     
     guess_line = ""
-    for c in guess.word:
-        guess_line += "* " + c + " *  "
+    for i, c in enumerate(guess.guess):
+        color = guess.colors[i]
+        guess_line += "* "
+        match color:
+            case "green": 
+                guess_line += "\033[32m" + c + "\033[32m"
+            case "yellow":
+                guess_line += "\033[33m" + c + "\033[33m"
+            case "grey":
+                guess_line += "\033[37m" + c + "\033[37m"
+        guess_line += " *"
     print(guess_line)
 
     print("*****  *****  *****  *****  *****")
-
 
 def leaderboard(registered_players):
     sorted_players = player_sort(registered_players)
