@@ -1,1 +1,13 @@
-[]
+[
+    {
+        "name": "jared",
+        "current_word_index": -1,
+        "current_word": null,
+        "game_in_progress": false,
+        "seen_words": [],
+        "record": {
+            "wins": 0,
+            "guess_count": 0
+        }
+    }
+]

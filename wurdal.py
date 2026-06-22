@@ -212,12 +212,16 @@ def parse_args():
 
 def load_players():
     try:
+        
+        
         json_data = ""
         with open("players.json", "r", encoding="utf-8") as f:
             json_data = f.read()
         return TypeAdapter(list[Player]).validate_json(json_data)
     except FileNotFoundError:
-        print("Error: File Not Found")
+        with open("players.json", "w") as f:
+            f.write('[]')
+        return TypeAdapter(list[Player]).validate_json('[]')
     except ValidationError:
         print("Error: Invalid Json")
 
