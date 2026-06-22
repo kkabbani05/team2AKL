@@ -289,12 +289,17 @@ def print_board_line(guess):
     print(line)
 
 def leaderboard(registered_players):
+    print('Leaderboard\n')
     sorted_players = player_sort(registered_players)
-    for i, player in enumerate(registered_players):
-        print(f"{i + 1}. {player.name} - Wins: {player.record.wins}, Guesses: {player.record.guess_count}")
+    if len(sorted_players) == 0 or sorted_players[0].record.wins == 0:
+        print('no wins yet.')
+    else:
+        for i, player in enumerate(sorted_players):
+            print(f"{i + 1}. {player.name} - wins: {player.record.wins}")
 
 def player_sort(registered_players):
-    least_guesses = min(player.record.guess_count for player in registered_players)
+    return sorted(registered_players, key= lambda x: (-x.record.wins, x.name))
+    #least_guesses = min(player.record.guess_count for player in registered_players)
 
 def main():
     registered_players = load_players()    
