@@ -1,61 +1,23 @@
 [
     {
-        "name": "alex",
-        "current_word_index": 0,
+        "name": "jared",
+        "current_word_index": 109,
         "current_word": {
-            "word": "hush",
+            "word": "listen",
             "guesses": [
                 {
-                    "guess": "hush",
+                    "guess": "takens",
                     "colors": {
-                        "0": "green",
-                        "1": "green",
-                        "2": "green",
-                        "3": "green"
+                        "0": "yellow",
+                        "1": "grey",
+                        "2": "grey",
+                        "3": "yellow",
+                        "4": "yellow",
+                        "5": "yellow"
                     }
                 },
                 {
-                    "guess": "hush",
-                    "colors": {
-                        "0": "green",
-                        "1": "green",
-                        "2": "green",
-                        "3": "green"
-                    }
-                }
-            ]
-        },
-        "game_in_progress": true,
-        "seen_words": [
-            {
-                "word": "hush",
-                "guesses": []
-            }
-        ],
-        "record": {
-            "wins": 1,
-            "guess_count": 1
-        }
-    },
-    {
-        "name": "Alex",
-        "current_word_index": -1,
-        "current_word": null,
-        "game_in_progress": false,
-        "seen_words": [],
-        "record": {
-            "wins": 0,
-            "guess_count": 0
-        }
-    },
-    {
-        "name": "jared",
-        "current_word_index": 47,
-        "current_word": {
-            "word": "waddle",
-            "guesses": [
-                {
-                    "guess": "waddle",
+                    "guess": "listen",
                     "colors": {
                         "0": "green",
                         "1": "green",
@@ -67,16 +29,62 @@
                 }
             ]
         },
-        "game_in_progress": true,
+        "game_in_progress": false,
         "seen_words": [
             {
-                "word": "waddle",
+                "word": "worsen",
+                "guesses": []
+            },
+            {
+                "word": "whirr",
+                "guesses": []
+            },
+            {
+                "word": "listen",
+                "guesses": []
+            }
+        ],
+        "record": {
+            "wins": 3,
+            "guess_count": 9
+        }
+    },
+    {
+        "name": "ally",
+        "current_word_index": 11,
+        "current_word": {
+            "word": "sane",
+            "guesses": [
+                {
+                    "guess": "tame",
+                    "colors": {
+                        "1": "green",
+                        "3": "green",
+                        "0": "grey",
+                        "2": "grey"
+                    }
+                },
+                {
+                    "guess": "sane",
+                    "colors": {
+                        "0": "green",
+                        "1": "green",
+                        "2": "green",
+                        "3": "green"
+                    }
+                }
+            ]
+        },
+        "game_in_progress": false,
+        "seen_words": [
+            {
+                "word": "sane",
                 "guesses": []
             }
         ],
         "record": {
             "wins": 1,
-            "guess_count": 0
+            "guess_count": 2
         }
     }
 ]

@@ -37,19 +37,19 @@ def parse_args():
     subparsers = parser.add_subparsers(dest='command', required=True)
 
     # wurdal register <player-name>
-    register_parser = subparsers.add_parser('register', help='Register a new player')
-    register_parser.add_argument('player_name', metavar='player-name')
+    register_parser = subparsers.add_parser('register', help='Register a new player', usage="%(prog)s <player-name>")
+    register_parser.add_argument('player_name', metavar='player-name', )
 
     # wurdal new-game <player-name>
-    new_game_parser = subparsers.add_parser('new-game', help='Start a new game')
+    new_game_parser = subparsers.add_parser('new-game', help='Start a new game', usage="%(prog)s <player-name>")
     new_game_parser.add_argument('player_name', metavar='player-name')
 
     # wurdal guess <player-name> <word>
-    guess_parser = subparsers.add_parser('guess', help='Make a guess')
+    guess_parser = subparsers.add_parser('guess', help='Make a guess', usage="%(prog)s <player-name> <word>")
     guess_parser.add_argument('player_name', metavar='player-name')
     guess_parser.add_argument('word')
 
-    board_parser = subparsers.add_parser('board', help='Board')
+    board_parser = subparsers.add_parser('board', help='Board', usage="%(prog)s <player-name>")
     board_parser.add_argument('player_name', metavar='player-name')
 
     # wurdal leaderboard [--by-games]
@@ -74,7 +74,7 @@ def load_players():
 def write_players(registered_players):
     try:
         adapter = TypeAdapter(list[Player])
-        json_bytes = adapter.dump_json(registered_players)
+        json_bytes = adapter.dump_json(registered_players, indent=4)
         with open('players.json', 'wb') as f:
             f.write(json_bytes)
     except FileNotFoundError:
@@ -99,18 +99,18 @@ def player_to_list(player, idx, registered_players):
 def register(player_name, registered_players):
     # if player name is empty
     if player_name == "":
-        print("Error: Blank player name provided.")
+        print("Error: invalid player name")
         sys.exit(1)
 
     # if player already exists
     if any(player.name == player_name for player in registered_players):
-        print("Error: Player already registered.")
+        print("Error: player already exists")
         sys.exit(1) 
 
     # if player name does not contain only letters, numbers, hyphens, and underscores
     pattern = r'^[a-zA-Z0-9_-]+$'
     if (re.match(pattern, player_name)) == False:
-        print("Error: Invalid player name provided.")
+        print("Error: invalid player name")
         sys.exit(1)
     
     player = Player(name=player_name, 
@@ -123,7 +123,7 @@ def register(player_name, registered_players):
 def new_game(player_name, registered_players):
     # if player is not registered
     if not any(player.name == player_name for player in registered_players):
-        print("Error: Player already registered.")
+        print("Error: player not found")
         sys.exit(1) 
     
     i = next(i for i, player in enumerate(registered_players) if player.name == player_name)
@@ -131,18 +131,19 @@ def new_game(player_name, registered_players):
     
     # if player is already in a game
     if player.game_in_progress == True:
-        print("Error: Game in progress")
+        print("Error: game in progress")
         sys.exit(1) 
 
     # if player has seen all the words
     if len(player.seen_words) == len(word_list): ################# change if we're using full list of words
-        print("Error: No more words available")
+        print("Error: no words available")
         sys.exit(1)
 
     word_idx = select_word(player)
     player.current_word_index = word_idx
     player.game_in_progress = True
     player = player_to_list(player, i, registered_players)
+    print('✨ New game started ✨')
     print_board(player)
 
 def select_word(player):
@@ -163,22 +164,23 @@ def guess(player_name, guess_string, registered_players):
 
     # if game has not started yet
     if player.game_in_progress == False:
-        print("Error: No active game")
+        print("Error: no active game")
         sys.exit(1)
 
     # if player does not exist
     if player not in registered_players:
-        print("Error: Player not found")
+        print("Error: player not found")
         sys.exit(1)
 
     word = player.current_word.word
 
     # guess validation
     guess_validation(guess_string, word)
-
+    win = False
     if guess_string == word:
         player.record.wins += 1
-        player.record.guess_count += len(player.current_word.guesses)
+        player.record.guess_count += len(player.current_word.guesses) + 1
+        win = True
     # track guesses after loss
     elif len(player.current_word.guesses) == 6:
         player.record.guess_count += 6 
@@ -195,37 +197,41 @@ def guess(player_name, guess_string, registered_players):
     # check one to one positions for green tiles
     for i, c in enumerate(guess_string):
         if c == word[i]:
-            colors[i] = "green"
+            colors[str(i)] = "green"
             tally[c] -= 1
 
     # check for yellow
     for i, c in enumerate(guess_string):
-        if i not in colors:
+        if str(i) not in colors:
             if c in word and tally[c] > 0:
-                colors[i] = "yellow"
+                colors[str(i)] = "yellow"
                 tally[c] -= 1
             else:
-                colors[i] = "grey"
+                colors[str(i)] = "grey"
 
     new_guess = Guess(guess=guess_string, colors=colors)
     player.current_word.guesses.append(new_guess)
-    player_to_list(player, idx, registered_players)
+    player = player_to_list(player, idx, registered_players)
+    print_board(player)
+    if win:
+        player.game_in_progress = False
+        print(f'{player.name} solved it in {len(player.current_word.guesses)} guesses!')
 
 def guess_validation(guess_string, word):
     # checks the length of the guess
     if len(guess_string) < len(word) or len(guess_string) > len(word):
-        print("Error: Invalid guess")
+        print("Error: invalid guess")
         sys.exit(1)
     
     # checks if the guess is all letters
     if guess_string.isalpha() == False:
-        print("Error: Invalid guess")
+        print("Error: invalid guess")
         sys.exit(1)
 
 def print_board(player):
     # if game has not started yet
     if player.game_in_progress == False:
-        print("Error: No active game")
+        print("Error: no active game")
         sys.exit(1)
         
     count = len(player.current_word.word)
@@ -252,27 +258,34 @@ def print_empty_board_line(count):
     print(spaces)
     print(line)
 
+def print_color(color, to_print):
+    match color:
+        case "green":
+            return f"\033[32m{to_print}\033[32m\033[0m"
+        case "yellow":
+            return f"\033[33m{to_print}\033[33m\033[0m"
+        case "grey":
+            return f"\033[37m{to_print}\033[37m\033[0m"
+        case _:
+            print('Error: internal error')
+            exit(3)
+
 def print_board_line(guess):
     count = len(guess.guess)
     line = ""
-    for i in range(count):
-        line += "*****  "  
     
+    for i in range(count):
+         color = guess.colors[str(i)]
+         line += print_color(color, "*****  ")
+          
     print(line)
     guess_line = ""
-    for i, c in enumerate(guess.guess):
+    for i, c in enumerate(guess.guess):   
         color = guess.colors[str(i)]
-        guess_line += "* "
-        match color:
-            case "green": 
-                guess_line += "\033[32m" + c + "\033[32m" + "\033[0m"
-            case "yellow":
-                guess_line += "\033[33m" + c + "\033[33m" + "\033[0m"
-            case "grey":
-                guess_line += "\033[37m" + c + "\033[37m" + "\033[0m"
-        guess_line += " *  "
+        guess_line += print_color(color, "* ")
+        guess_line += c
+        guess_line += print_color(color, " *  ")
     print(guess_line)
-
     print(line)
 
 def leaderboard(registered_players):
