@@ -131,3 +131,6 @@ dmypy.json
 
 # FastAPI
 .uvicorn
+
+players.json
+wurdal
