@@ -1,12 +1,13 @@
 # all-jar-guess-the-word-cli
 
-## Language
+## Required Python version
 
+python 3.14.6
 
-# Register Players
+## Dependency Installation
 
-- each player name needs to be unique
-- keep track of seen words per player
-- keep track of if a player is currently in a game
+```pipenv install --dev```
 
-# new-game
+## CLI run command
+
+```wurdal <cmd>```
