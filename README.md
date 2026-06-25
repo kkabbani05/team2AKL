@@ -4,9 +4,14 @@
 
 python 3.14.6
 
-## Dependency Installation
+If ```pipenv``` shows not found run ```pyenv global 3.14.6``` to set your global python version to the correct one.
 
-```pipenv install --dev```
+## Dependency Installation and setup
+
+```Bash
+pipenv install --dev
+pipenv shell
+```
 
 ## Bash Scripting Wurdal Command
 Add this line to your ```~/.zshrc``` file.
@@ -14,5 +19,5 @@ Add this line to your ```~/.zshrc``` file.
 Then open a new terminal and you should be good to run the cmd.
 
 ## CLI run command
-Cd into src of the project before running.
+cd into src of the project before running.
 ```wurdal <cmd>```
