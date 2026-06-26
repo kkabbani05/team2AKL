@@ -13,6 +13,8 @@ def login(player_name: str, registered_players: list):
     :param player_name: Player name to be logged in
     :param registered_players: a list of Player objects
     """
+    player_name = str.lower(player_name)
+
     # if player name is empty
     if player_name == "":
         print("Error: invalid player name")
