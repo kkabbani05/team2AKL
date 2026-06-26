@@ -1,0 +1,40 @@
+###
+GET http://localhost:8000/players
+
+###
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "Tom"
+}
+
+###
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "    tom   "
+}
+
+###
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "dude"
+}
+
+###
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "     "
+}
+
+###
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{}

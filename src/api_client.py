@@ -1,4 +1,5 @@
 import requests
+import sys
 
 def login_with_server(username: str):
     """
@@ -18,6 +19,33 @@ def login_with_server(username: str):
         return None, "server_down"
     except Exception:
         return None, "server_down"
+    
+
+def register_player(username: str):
+    """
+    POST /players with username
+    """
+    try:
+        response = requests.post(
+            "http://localhost:8000/players",
+            json={"name": username}
+        )
+        if response.status_code == 201:
+            print(f"May the odds be in your favor {username}!")
+            sys.exit(0)
+        elif response.status_code == 422:
+            data = response.json()
+            detail = data.get("detail")
+            if detail == "Name cannot be empty":
+                print("Name cannot be empty.")
+                sys.exit(1)
+            elif detail == "Username is already taken":
+                print("That name is already taken. Please choose another.")
+                sys.exit(1)
+    except requests.exceptions.ConnectionError:
+        print("Looks like the wurdal servers are taking a loss... try again later!")
+    except Exception:
+        print("Looks like the wurdal servers are taking a loss... try again later!")
 
 
 def fetch_board(user_id):

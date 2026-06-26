@@ -1,29 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
-from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
 
-from app.database import Base, create_database_session
+from app.database import create_database_session
+from app.models import User, UserCreate, UserRead
 
 router = APIRouter()
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-
-class UserCreate(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    name: str
-
-class UserRead(UserCreate):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-    id: int
-
 
 @router.post("/", response_model=UserRead)
 def attempt_login(user: UserCreate, session: Session = Depends(create_database_session)):
@@ -36,7 +17,7 @@ def attempt_login(user: UserCreate, session: Session = Depends(create_database_s
             found_user = True
             return db_user
     if not found_user:
-        raise HTTPException(status_code=422, detail={"description": "Player not found"})
+        raise HTTPException(status_code=422, detail="Player not found")
     
 @router.get("/", response_model=list[UserRead])
 def get_registered_users(session: Session = Depends(create_database_session)):

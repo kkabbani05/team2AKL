@@ -15,7 +15,6 @@ from utils import (
 
 def main():
     registered_players = load_players()
-    print(registered_players)
     args = parse_args()
 
     if args.command in ("register", "login"):
