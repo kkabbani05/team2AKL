@@ -161,7 +161,7 @@ def test_find_player_returns_index_and_player(player_factory):
     idx, player = utils.find_player("bob", players)
 
     assert idx == 1
-    assert player.name == "bob"
+    assert player.get("name") == "bob"
 
 
 def test_player_to_list_replaces_player(player_factory):

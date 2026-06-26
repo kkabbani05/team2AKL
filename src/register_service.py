@@ -3,14 +3,13 @@ import re
 from models import Player, Record
 
 
-def register(player_name: str, registered_players: list[Player]):
+def register(player_name: str, registered_players: list):
     """
     Checks if a valid player_name was given and registers a new player.
 
     :param player_name: New unique player_name to be registered
     :param registered_players: a list of Player objects
     """
-    player_name = str.lower(player_name)
 
     # if player name is empty
     if player_name == "":
@@ -18,7 +17,7 @@ def register(player_name: str, registered_players: list[Player]):
         sys.exit(1)
 
     # if player already exists
-    if any(player.name == player_name for player in registered_players):
+    if any(player.get("name").strip().lower() == player_name.strip().lower() for player in registered_players):
         print("Error: player already exists")
         sys.exit(1)
 

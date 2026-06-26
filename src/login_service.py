@@ -13,8 +13,6 @@ def login(player_name: str, registered_players: list):
     :param player_name: Player name to be logged in
     :param registered_players: a list of Player objects
     """
-    player_name = str.lower(player_name)
-
     # if player name is empty
     if player_name == "":
         print("Error: invalid player name")
@@ -47,7 +45,8 @@ def login(player_name: str, registered_players: list):
         #board_service.print_board(board_data)
         pass
     # if player does not exist
-    if not any(player.name == player_name for player in registered_players):
+    print(registered_players)
+    if not any(player.get("name").strip().lower() == player_name.strip().lower() for player in registered_players):
         print(f"Could not find user {player_name}. Please register")
         print(f"Please run 'wurdal register {player_name}' to register")
         sys.exit(1)
@@ -61,10 +60,10 @@ def login(player_name: str, registered_players: list):
     print(f"May the odds be in your favor {player_name}!")
 
     player = find_player(player_name, registered_players)[1]
-    if player.game_in_progress:
+    if player.get("game_in_progress"):
         print(f"Here is your current game board, {player_name}:")
         board_service.print_board(player)
-    elif not player.game_in_progress:
+    elif not player.get("game_in_progress"):
         print(f"No active game found, starting new game for {player_name}.")
         word_list = read_in_word_list()
         new_game_service.new_game(player_name, registered_players, word_list)

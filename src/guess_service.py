@@ -14,7 +14,7 @@ def guess(player_name: str, guess_string: str, registered_players: list[Player])
     :param registered_players: a list of player objects
     """
 
-    if not any(player.name == player_name for player in registered_players):
+    if not any(player.get("name").strip().lower() == player_name.strip().lower() for player in registered_players):
         print("Error: player not found")
         sys.exit(1)
 
@@ -79,13 +79,13 @@ def guess(player_name: str, guess_string: str, registered_players: list[Player])
     print_board(player)
 
     if win:
-        print(f"{player.name} solved it in {len(player.current_word.guesses)} guesses!")
+        print(f"{player.get("name")} solved it in {len(player.current_word.guesses)} guesses!")
 
     if win or lose:
         player.game_in_progress = False
-        print(f"Game over for {player.name}.")
+        print(f"Game over for {player.get("name")}.")
         print(f"The word was: {player.current_word.word}")
-        print(f"Starting new game for {player.name}:")
+        print(f"Starting new game for {player.get("name")}:")
         word_list = read_in_word_list()
         new_game_service.new_game(player_name, registered_players, word_list)
 

@@ -38,4 +38,6 @@ def attempt_login(user: UserCreate, session: Session = Depends(create_database_s
     if not found_user:
         raise HTTPException(status_code=422, detail={"description": "Player not found"})
     
-
+@router.get("/", response_model=list[UserRead])
+def get_registered_users(session: Session = Depends(create_database_session)):
+    return session.query(User).all()

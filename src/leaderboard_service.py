@@ -13,7 +13,7 @@ def leaderboard(registered_players: list[Player]):
         print("No wins yet.")
     else:
         for i, player in enumerate(sorted_players):
-            print(f"{i + 1}. {player.name} - wins: {player.record.wins}")
+            print(f"{i + 1}. {player.get("name")} - wins: {player.record.wins}")
 
 
 def player_sort(registered_players: list[Player]):

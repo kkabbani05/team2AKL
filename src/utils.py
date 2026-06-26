@@ -1,5 +1,6 @@
 import sys
 import argparse
+import requests
 from pydantic import TypeAdapter, ValidationError
 from models import Player
 
@@ -71,22 +72,18 @@ def parse_args():
 def load_players():
     """
     Load players from persisted storage
-    return: list[Player]: list of registered players
+    return: list[User]: list of registered players
     """
     try:
-        json_data = ""
-        with open("../players.json", "r", encoding="utf-8") as f:
-            json_data = f.read()
-        return TypeAdapter(list[Player]).validate_json(json_data)
-    except FileNotFoundError:
-        with open("../players.json", "w") as f:
-            f.write("[]")
-        return TypeAdapter(list[Player]).validate_json("[]")
-    except ValidationError:
-        print("Error: Invalid Json")
+        response = requests.get("http://localhost:8000/sessions")
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        print("Error: The server is down")
+        sys.exit(1)
 
 
-def write_players(registered_players: list[Player]):
+def write_players(registered_players: list):
     """
     Writes players to persisted storage
     """
@@ -99,7 +96,7 @@ def write_players(registered_players: list[Player]):
         print("Error: File Not Found")
 
 
-def find_player(player_name: str, registered_players: list[Player]):
+def find_player(player_name: str, registered_players: list):
     """
     Load players from persisted storage
 
@@ -109,12 +106,12 @@ def find_player(player_name: str, registered_players: list[Player]):
     return: Player: found player in the list
     """
     i = next(
-        i for i, player in enumerate(registered_players) if player.name == player_name
+        i for i, player in enumerate(registered_players) if player.get("name").strip().lower() == player_name.strip().lower()
     )
     return i, registered_players[i]
 
 
-def player_to_list(player: Player, idx: int, registered_players: list[Player]):
+def player_to_list(player: Player, idx: int, registered_players: list):
     """
     Updates a player in the registered players list.
 

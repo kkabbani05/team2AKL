@@ -36,7 +36,7 @@ def test_register_appends_new_player():
 
     assert len(registered_players) == 1
     player = registered_players[0]
-    assert player.name == "new_player"
+    assert player.get("name") == "new_player"
     assert player.current_word_index == -1
     assert player.game_in_progress is False
     assert player.seen_words == []

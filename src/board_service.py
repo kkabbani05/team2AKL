@@ -17,7 +17,7 @@ def print_board(
         sys.exit(1)
 
     if command == "board":
-        print(f"May the odds be in your favor {player.name}!")
+        print(f"May the odds be in your favor {player.get("name")}!")
 
     count = len(player.current_word.word)
 

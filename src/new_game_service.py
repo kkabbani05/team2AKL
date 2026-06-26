@@ -14,12 +14,12 @@ def new_game(player_name: str, registered_players: list[Player], word_list: list
     :param word_list: List of secret words to seed the game for the player
     """
     # if player is not registered
-    if not any(player.name == player_name for player in registered_players):
+    if not any(player.get("name").strip().lower() == player_name.strip().lower() for player in registered_players):
         print("Error: player not found")
         sys.exit(1)
 
     i = next(
-        i for i, player in enumerate(registered_players) if player.name == player_name
+        i for i, player in enumerate(registered_players) if player.get("name") == player_name
     )
     player = registered_players[i]
 
