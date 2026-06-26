@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import ConfigDict
-from pydantic.alias_generators import to_camel
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
 from fastapi_camelcase import CamelModel
