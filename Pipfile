@@ -11,6 +11,7 @@ uvicorn = "*"
 sqlalchemy = "*"
 psycopg = "*"
 alembic = "*"
+fastapi-camelcase = "*"
 
 [dev-packages]
 pytest = "*"

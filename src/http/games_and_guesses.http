@@ -1,0 +1,71 @@
+### Games and Guesses API Testing
+
+### Get all games
+GET http://localhost:8000/games
+Content-Type: application/json
+
+###
+### Get a specific game by ID
+GET http://localhost:8000/games/1
+Content-Type: application/json
+
+###
+### Get games for a specific user
+GET http://localhost:8000/games?user_id=1
+Content-Type: application/json
+
+###
+### Create a new game for user 1
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "word_to_guess": "PLANT",
+    "status": "in_progress"
+}
+
+###
+### Create a new game for user 2
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 2,
+    "word_to_guess": "BEACH",
+    "status": "in_progress"
+}
+
+###
+### Get all guesses
+GET http://localhost:8000/guesses
+Content-Type: application/json
+
+###
+### Get guesses for a specific game
+GET http://localhost:8000/guesses?game_id=1
+Content-Type: application/json
+
+###
+### Add a guess to a game
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 1,
+    "attempt_no": 3,
+    "guess_word": "PLANT",
+    "feedback": "GR,GR,GR,GR,GR"
+}
+
+###
+### Add another guess (attempt 3 for game 2)
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 2,
+    "attempt_no": 3,
+    "guess_word": "TRACK",
+    "feedback": "GR,GR,GR,GR,GR"
+}

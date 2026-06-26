@@ -209,6 +209,14 @@
             "markers": "python_version >= '3.10'",
             "version": "==0.138.1"
         },
+        "fastapi-camelcase": {
+            "hashes": [
+                "sha256:96925a604778b36784a68aeae4ecbbc04936cf4b7f4a09a26ca6292ab2849929"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==2.0.0"
+        },
         "h11": {
             "hashes": [
                 "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1",
@@ -471,6 +479,13 @@
             ],
             "markers": "python_version >= '3.9'",
             "version": "==2.46.4"
+        },
+        "pyhumps": {
+            "hashes": [
+                "sha256:060e1954d9069f428232a1adda165db0b9d8dfdce1d265d36df7fbff540acfd6",
+                "sha256:498026258f7ee1a8e447c2e28526c0bea9407f9a59c03260aee4bd6c04d681a3"
+            ],
+            "version": "==3.8.0"
         },
         "requests": {
             "hashes": [
