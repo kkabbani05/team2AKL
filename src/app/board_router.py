@@ -67,6 +67,19 @@ def get_player_board(
             .order_by(Game.id.desc())
             .first()
         )
+    # if not current_game:
+    # # Auto-create a new game
+    #     import random
+    #     from pathlib import Path
+        
+    #     word_list_path = Path(__file__).parent.parent / "word_list.txt"
+    #     with open(word_list_path) as f:
+    #         words = [line.strip() for line in f if line.strip()]
+        
+    #     word = random.choice(words)
+    #     current_game = Game(user_id=user_id, word_to_guess=word, status="in_progress")
+    #     session.add(current_game)
+    #     session.commit()
     if not current_game:
         raise HTTPException(status_code=404, detail="No games found for this user")
 
