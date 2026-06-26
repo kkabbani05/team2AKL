@@ -499,6 +499,8 @@
         "typing-extensions": {
             "hashes": [
                 "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466",
+                "sha256:49b001798e59fbb7a523f0d36e8cf2d82d8e3f9fc41b04ff958da1ed7cc3b671",
+                "sha256:8fd4191376831cd3503df0cf06a0c0e6c1dae08ea3e6af770a785eeb90934dea",
                 "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548"
             ],
             "markers": "python_version >= '3.9'",
@@ -519,15 +521,6 @@
             ],
             "markers": "python_version >= '3.10'",
             "version": "==2.7.0"
-        },
-        "uvicorn": {
-            "hashes": [
-                "sha256:ba3d14c3ee7e41c6c654c46c9eb489d33213cdd30aa1696eab1374337c13f68f",
-                "sha256:ebf4271aa580d9de97f93192d4595176df6e91f9aae919ca73e4fc07df1e66a3"
-            ],
-            "index": "pypi",
-            "markers": "python_version >= '3.10'",
-            "version": "==0.49.0"
         }
     },
     "develop": {
