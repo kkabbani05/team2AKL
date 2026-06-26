@@ -5,6 +5,9 @@ name = "package-manager.aa.com"
 
 [packages]
 pydantic = "*"
+fastapi = "*"
+uvicorn = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 pytest = "*"
