@@ -69,3 +69,14 @@ Content-Type: application/json
     "guess_word": "TRACK",
     "feedback": "GR,GR,GR,GR,GR"
 }
+
+### Successful board retrieval
+GET http://localhost:8000/players/3/board
+Authorization: Bearer 3
+
+### Missing auth header
+GET http://localhost:8000/players/33/board
+
+### Invalid token
+GET http://localhost:8000/players/33/board
+Authorization: Bearer invalid-token

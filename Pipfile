@@ -10,8 +10,8 @@ fastapi = "*"
 uvicorn = "*"
 sqlalchemy = "*"
 psycopg = "*"
-alembic = "*"
 fastapi-camelcase = "*"
+alembic = "*"
 
 [dev-packages]
 pytest = "*"
