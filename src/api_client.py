@@ -15,6 +15,20 @@ HARDCODED_BOARDS = {
 USE_HARDCODED = True  # Set to False when API is ready
 
 
+# Hardcoded test data - set USE_HARDCODED = False when API is ready
+HARDCODED_USERS = {
+    "tom": 123,
+    "alice": 456,
+}
+
+HARDCODED_BOARDS = {
+    123: {"guesses": [], "current_word": "python", "game_in_progress": True},
+    456: {"guesses": [], "current_word": "wordle", "game_in_progress": True},
+}
+
+USE_HARDCODED = True  # Set to False when API is ready
+
+
 def login_with_server(username: str):
     """
     POST /sessions with username, returns (user_id, error) tuple
