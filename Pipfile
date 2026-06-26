@@ -15,6 +15,7 @@ fastapi-camelcase = "*"
 
 [dev-packages]
 pytest = "*"
+httpx2 = "*"
 
 [requires]
 python_version = "3.14"

@@ -1,16 +1,20 @@
 from pydantic import BaseModel
 
+
 class Guess(BaseModel):
     guess: str
     colors: dict
+
 
 class Word(BaseModel):
     word: str
     guesses: list[Guess]
 
+
 class Record(BaseModel):
     wins: int
     guess_count: int
+
 
 class Player(BaseModel):
     name: str
