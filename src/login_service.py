@@ -8,11 +8,13 @@ import new_game_service
 
 def login(player_name: str, registered_players: list):
     """
-    Checks if a player_name is registered and logs in the player via API.
+    Checks if a player_name is registered and logs in the player.
 
     :param player_name: Player name to be logged in
-    :param registered_players: a list of Player objects (not used in API flow)
+    :param registered_players: a list of Player objects
     """
+    player_name = str.lower(player_name)
+
     # if player name is empty
     if player_name == "":
         print("Error: invalid player name")
