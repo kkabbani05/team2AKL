@@ -2,27 +2,49 @@
 
 import register_service
 import board_service
-import new_game_service
 import guess_service
 import leaderboard_service
-from utils import load_players, find_player, write_players, read_in_word_list, parse_args
+import login_service
+from utils import (
+    load_players,
+    find_player,
+    write_players,
+    parse_args,
+)
 
 
 def main():
     registered_players = load_players()
     args = parse_args()
-    word_list = read_in_word_list()
+
+    if args.command in ("register", "login"):
+        player_name = args.player_name
+    elif args.command == "logout":
+        player_name = None
+    else:
+        try:
+            with open("current_player.txt", "r") as file:
+                player_name = file.read().strip() or None
+        except FileNotFoundError:
+            player_name = None
+        if player_name is None:
+            print("Please login to continue")
+            return
 
     if args.command == "register":
-        register_service.register(args.player_name, registered_players)
-    elif args.command == "new-game":
-        new_game_service.new_game(args.player_name, registered_players, word_list)
+        register_service.register(player_name, registered_players)
     elif args.command == "guess":
-        guess_service.guess(args.player_name, args.word, registered_players)
+        guess_service.guess(player_name, args.word, registered_players)
     elif args.command == "board":
-        board_service.print_board(find_player(args.player_name, registered_players)[1])
+        board_service.print_board(
+            find_player(player_name, registered_players)[1], "board"
+        )
     elif args.command == "leaderboard":
         leaderboard_service.leaderboard(registered_players)
+    elif args.command == "login":
+        login_service.login(args.player_name, registered_players)
+    elif args.command == "logout":
+        login_service.logout()
 
     write_players(registered_players)
 

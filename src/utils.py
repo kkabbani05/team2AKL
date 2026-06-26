@@ -16,11 +16,11 @@ def read_in_word_list():
     return: words: list of words for the player to guess.
     """
     try:
-        with open('../src/word_list.txt', 'r') as f:
+        with open("../src/word_list.txt", "r") as f:
             words = f.read().split("\n")
         return words
     except FileNotFoundError:
-        print("Word list not found.")        
+        print("Word list not found.")
         sys.exit(3)
 
 
@@ -41,23 +41,23 @@ def parse_args():
         metavar="player-name",
     )
 
-    # wurdal new-game <player-name>
-    new_game_parser = subparsers.add_parser(
-        "new-game", help="Start a new game", usage="%(prog)s <player-name>"
-    )
-    new_game_parser.add_argument("player_name", metavar="player-name")
-
-    # wurdal guess <player-name> <word>
+    # wurdal guess <word>
     guess_parser = subparsers.add_parser(
-        "guess", help="Make a guess", usage="%(prog)s <player-name> <word>"
+        "guess", help="Make a guess", usage="%(prog)s <word>"
     )
-    guess_parser.add_argument("player_name", metavar="player-name")
     guess_parser.add_argument("word")
 
-    board_parser = subparsers.add_parser(
-        "board", help="Board", usage="%(prog)s <player-name>"
+    # wurdal board
+    subparsers.add_parser("board", help="Show board")
+
+    # wurdal login <player-name>
+    login_parser = subparsers.add_parser(
+        "login", help="Login a player", usage="%(prog)s <player-name>"
     )
-    board_parser.add_argument("player_name", metavar="player-name")
+    login_parser.add_argument("player_name", metavar="player-name")
+
+    # wurdal logout
+    subparsers.add_parser("logout", help="Logout current player")
 
     # wurdal leaderboard [--by-games]
     leaderboard_parser = subparsers.add_parser("leaderboard", help="Show leaderboard")
@@ -102,7 +102,7 @@ def write_players(registered_players: list[Player]):
 def find_player(player_name: str, registered_players: list[Player]):
     """
     Load players from persisted storage
-    
+
     :param player_name: a name of a player to be found
     :param registered_players: a list of registered players
     return: i: index of player in the list

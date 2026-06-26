@@ -1,7 +1,7 @@
 [[source]]
-url = "https://${CLOUDSMITH_USERNAME}:${CLOUDSMITH_API_KEY}@package-manager.aa.com/basic/prod/python/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
-name = "package-manager.aa.com"
+name = "pypi"
 
 [packages]
 pydantic = "*"

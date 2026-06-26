@@ -2,7 +2,10 @@ import sys
 from models import Player, Guess
 
 
-def print_board(player: Player):
+def print_board(
+    player: Player,
+    command: str = "",
+):
     """
     Validates the Player status and prints the game board.
 
@@ -12,6 +15,9 @@ def print_board(player: Player):
     if not player.game_in_progress:
         print("Error: no active game")
         sys.exit(1)
+
+    if command == "board":
+        print(f"May the odds be in your favor {player.name}!")
 
     count = len(player.current_word.word)
 
@@ -46,7 +52,7 @@ def print_empty_board_line(count: int):
 
 def print_color(color: str, to_print: str):
     """
-    Matches the given color to the ANSI color code and returns the string 
+    Matches the given color to the ANSI color code and returns the string
     with the color code.
 
     :param color: color for the given string *
