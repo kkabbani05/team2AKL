@@ -1,0 +1,37 @@
+###
+POST http://localhost:8000/sessions
+Content-Type: application/json
+
+{
+    "name": "Tom"
+}
+
+###
+POST http://localhost:8000/sessions
+Content-Type: application/json
+
+{
+    "name": "    Tom   "
+}
+
+###
+POST http://localhost:8000/sessions
+Content-Type: application/json
+
+{
+    "name": "tom"
+}
+
+###
+POST http://localhost:8000/sessions
+Content-Type: application/json
+
+{
+    "name": "Jordan"
+}
+
+###
+POST http://localhost:8000/sessions
+Content-Type: application/json
+
+{}
