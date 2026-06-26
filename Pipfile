@@ -12,7 +12,6 @@ sqlalchemy = "*"
 psycopg = "*"
 fastapi-camelcase = "*"
 alembic = "*"
-fastapi-camelcase = "*"
 
 [dev-packages]
 pytest = "*"
