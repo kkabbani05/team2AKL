@@ -1,0 +1,1 @@
+1. If a player is logged in, no other player can login
