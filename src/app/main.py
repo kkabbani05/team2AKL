@@ -3,10 +3,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from app.session_router import router as session_router
 from app.player_router import router as player_router
+from app.leaderboard_router import router as leaderboard_router
 
 app = FastAPI()
 app.include_router(session_router, prefix="/sessions", tags=["sessions"])
 app.include_router(player_router, prefix="/players", tags=["players"])
+app.include_router(leaderboard_router, prefix="/leaderboard", tags=["leaderboard"])
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
