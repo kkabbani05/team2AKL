@@ -5,6 +5,7 @@ import board_service
 import guess_service
 import leaderboard_service
 import login_service
+import session_manager
 from utils import (
     load_players,
     find_player,
@@ -22,12 +23,15 @@ def main():
     elif args.command == "logout":
         player_name = None
     else:
+        session = session_manager.load_session()
+        if not session or not session.get("player_name"):
+            print("Please login to continue")
+            return
+        player_name = session.get("player_name")
         try:
-            with open("current_player.txt", "r") as file:
-                player_name = file.read().strip() or None
-        except FileNotFoundError:
-            player_name = None
-        if player_name is None:
+            find_player(player_name, registered_players)
+        except StopIteration:
+            session_manager.clear_session()
             print("Please login to continue")
             return
 

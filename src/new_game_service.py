@@ -19,7 +19,7 @@ def new_game(player_name: str, registered_players: list[Player], word_list: list
         sys.exit(1)
 
     i = next(
-        i for i, player in enumerate(registered_players) if player.get("name") == player_name
+        i for i, player in enumerate(registered_players) if player.get("name").strip().lower() == player_name.strip().lower()
     )
     player = registered_players[i]
 
