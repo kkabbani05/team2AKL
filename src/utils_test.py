@@ -65,46 +65,70 @@ def test_parse_args_leaderboard_flag(monkeypatch):
     assert args.by_games is True
 
 
-def test_load_players_reads_valid_json(monkeypatch):
-    json_str = (
-        '[{"name":"amy","current_word_index":-1,"current_word":null,'
-        '"game_in_progress":false,"seen_words":[],"record":{"wins":1,"guess_count":2}}]'
-    )
+def test_load_players_builds_players_from_db(monkeypatch):
+    users = [{"name": "amy", "id": 1}]
+    games = [
+        {"id": 10, "user_id": 1, "word_to_guess": "PLANT", "status": "completed"},
+        {"id": 11, "user_id": 1, "word_to_guess": "TRACK", "status": "in_progress"},
+    ]
+    guesses = {
+        10: [
+            {"attempt_no": 1, "guess_word": "STARE", "feedback": "G,G,Y,G,G"},
+            {"attempt_no": 2, "guess_word": "PLANT", "feedback": "GR,GR,GR,GR,GR"},
+        ],
+        11: [
+            {"attempt_no": 1, "guess_word": "SLATE", "feedback": "G,Y,G,G,G"},
+        ],
+    }
 
-    class FakeFile:
-        def __enter__(self):
-            return self
+    class FakeResponse:
+        def __init__(self, payload, status_code=200):
+            self._payload = payload
+            self.status_code = status_code
 
-        def __exit__(self, *_args):
-            return False
+        def json(self):
+            return self._payload
 
-        def read(self):
-            return json_str
+    def fake_get(url, params=None):
+        if url.endswith("/sessions"):
+            return FakeResponse(users)
+        if url.endswith("/games"):
+            return FakeResponse(games)
+        if url.endswith("/guesses"):
+            return FakeResponse(guesses[params["game_id"]])
+        return FakeResponse(None, status_code=404)
 
-    monkeypatch.setattr("builtins.open", lambda *_a, **_k: FakeFile())
+    monkeypatch.setattr(utils.requests, "get", fake_get)
 
     players = utils.load_players()
 
     assert len(players) == 1
-    assert players[0].name == "amy"
-    assert players[0].record.wins == 1
+    player = players[0]
+    assert player.name == "amy"
+    assert player.record.wins == 1
+    assert player.record.guess_count == 2
+    assert player.game_in_progress is True
+    assert player.current_word.word == "track"
+    assert len(player.seen_words) == 2
+    assert player.current_word.guesses[0].colors == {
+        "0": "grey",
+        "1": "yellow",
+        "2": "grey",
+        "3": "grey",
+        "4": "grey",
+    }
 
 
-def test_load_players_creates_empty_file_if_missing(tmp_path, monkeypatch):
-    players_path = tmp_path / "players.json"
-    original_open = open
+def test_load_players_returns_empty_on_server_error(monkeypatch):
+    class FakeResponse:
+        status_code = 500
 
-    def redirected_open(path, mode="r", *args, **kwargs):
-        if Path(path).as_posix() == "../players.json":
-            return original_open(players_path, mode, *args, **kwargs)
-        return original_open(path, mode, *args, **kwargs)
+        def json(self):
+            return None
 
-    monkeypatch.setattr("builtins.open", redirected_open)
+    monkeypatch.setattr(utils.requests, "get", lambda *_a, **_k: FakeResponse())
 
-    players = utils.load_players()
-
-    assert players == []
-    assert players_path.read_text() == "[]"
+    assert utils.load_players() == []
 
 
 def test_write_players_writes_json(tmp_path, monkeypatch):
@@ -121,7 +145,6 @@ def test_write_players_writes_json(tmp_path, monkeypatch):
     players = [
         Player(
             name="amy",
-            current_word_index=-1,
             current_word=None,
             game_in_progress=False,
             seen_words=[],
@@ -136,23 +159,16 @@ def test_write_players_writes_json(tmp_path, monkeypatch):
     assert '"wins": 2' in content
 
 
-def test_load_players_invalid_json_prints_error(monkeypatch, capsys):
-    class FakeFile:
-        def __enter__(self):
-            return self
+def test_load_players_handles_connection_error(monkeypatch, capsys):
+    def fail_get(*_args, **_kwargs):
+        raise utils.requests.exceptions.ConnectionError
 
-        def __exit__(self, *_args):
-            return False
-
-        def read(self):
-            return "not-json"
-
-    monkeypatch.setattr("builtins.open", lambda *_a, **_k: FakeFile())
+    monkeypatch.setattr(utils.requests, "get", fail_get)
 
     result = utils.load_players()
 
-    assert result is None
-    assert "Error: Invalid Json" in capsys.readouterr().out
+    assert result == []
+    assert "Could not connect to the server." in capsys.readouterr().out
 
 
 def test_find_player_returns_index_and_player(player_factory):
