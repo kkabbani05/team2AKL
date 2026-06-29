@@ -10,10 +10,12 @@ fastapi = "*"
 uvicorn = "*"
 sqlalchemy = "*"
 psycopg = "*"
+fastapi-camelcase = "*"
 alembic = "*"
 
 [dev-packages]
 pytest = "*"
+httpx2 = "*"
 
 [requires]
 python_version = "3.14"
