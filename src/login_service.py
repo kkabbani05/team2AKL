@@ -20,6 +20,13 @@ def login(player_name: str, registered_players: list):
         print("Error: invalid player name")
         sys.exit(1)
 
+    existing_session = session_manager.load_session()
+    if existing_session and existing_session.get("player_name"):
+        current_player = str(existing_session.get("player_name")).strip().lower()
+        if current_player != player_name:
+            print(f"{current_player} is already logged in. Please log out first.")
+            return
+
     # Call API to login
     user_id, error = api_client.login_with_server(player_name)
     if error:
@@ -55,10 +62,10 @@ def login(player_name: str, registered_players: list):
         print(f"Please run 'wurdal register {player_name}' to register")
         sys.exit(1)
 
-    if player.get("game_in_progress"):
+    if player.game_in_progress:
         print(f"Here is your current game board, {player_name}:")
         board_service.print_board(player)
-    elif not player.get("game_in_progress"):
+    elif not player.game_in_progress:
         print(f"No active game found, starting new game for {player_name}.")
         word_list = read_in_word_list()
         new_game_service.new_game(player_name, registered_players, word_list)

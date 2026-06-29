@@ -1,8 +1,13 @@
 import sys
 import argparse
 import requests
-from pydantic import TypeAdapter, ValidationError
-from models import Player
+from pydantic import TypeAdapter
+from models import Player, Word, Guess, Record
+
+BASE_URL = "http://localhost:8000"
+
+# Maps the DB feedback codes to the colors used by the CLI board.
+FEEDBACK_COLORS = {"GR": "green", "Y": "yellow", "G": "grey"}
 
 
 class WurdalArgumentParser(argparse.ArgumentParser):
@@ -71,16 +76,123 @@ def parse_args():
 
 def load_players():
     """
-    Load players from persisted storage
-    return: list[User]: list of registered players
+    Load players from the database via the API.
+    return: list[Player]: list of registered players
     """
     try:
-        response = requests.get("http://localhost:8000/sessions")
-        if response.status_code == 200:
-            return response.json()
+        response = requests.get(f"{BASE_URL}/sessions")
+        if response.status_code != 200:
+            return []
+        users = response.json()
+        if not isinstance(users, list):
+            return []
+        return [build_player(user) for user in users]
+    except requests.exceptions.ConnectionError:
+        print(
+            "Could not connect to the server. Please make sure the server is running."
+        )
+        return []
     except Exception:
-        print("Error: The server is down")
-        sys.exit(1)
+        print("An unexpected error occurred while loading players.")
+        return []
+
+
+def read_field(payload: dict, *keys, default=None):
+    """
+    Reads a field from a response payload using any of the provided key names.
+    This supports both snake_case and camelCase API responses.
+    """
+    for key in keys:
+        if key in payload:
+            return payload[key]
+    return default
+
+
+def feedback_to_colors(feedback: str):
+    """
+    Converts a DB feedback string (e.g. "G,Y,GR") into the colors dict used
+    by the CLI board. Returns None if the feedback is not a valid colour list.
+    """
+    colors = {}
+    for i, code in enumerate(feedback.split(",")):
+        color = FEEDBACK_COLORS.get(code.strip().upper())
+        if color is None:
+            return None
+        colors[str(i)] = color
+    return colors
+
+
+def build_word(game: dict):
+    """
+    Builds a Word object for a game by fetching its guesses from the API.
+
+    :param game: a game dict from the /games endpoint
+    :returns: a Word object with its guesses
+    """
+    game_id = read_field(game, "id")
+    response = requests.get(f"{BASE_URL}/guesses", params={"game_id": game_id})
+    guesses = []
+    if response.status_code == 200:
+        guess_rows = response.json()
+        if not isinstance(guess_rows, list):
+            guess_rows = []
+
+        for db_guess in sorted(
+            guess_rows,
+            key=lambda g: read_field(g, "attempt_no", "attemptNo", default=0),
+        ):
+            feedback = read_field(db_guess, "feedback")
+            guess_word = read_field(db_guess, "guess_word", "guessWord")
+            if feedback is None or guess_word is None:
+                continue
+
+            colors = feedback_to_colors(feedback)
+            if colors is None:
+                continue
+            guesses.append(Guess(guess=guess_word.lower(), colors=colors))
+
+    word_to_guess = read_field(game, "word_to_guess", "wordToGuess", default="")
+    return Word(word=word_to_guess.lower(), guesses=guesses)
+
+
+def build_player(user: dict):
+    """
+    Builds a Player object from a user by fetching their games and guesses.
+
+    :param user: a user dict from the /sessions endpoint
+    :returns: a fully populated Player object
+    """
+    user_id = read_field(user, "id")
+    response = requests.get(f"{BASE_URL}/games", params={"user_id": user_id})
+    games = response.json() if response.status_code == 200 else []
+    if not isinstance(games, list):
+        games = []
+
+    seen_words = []
+    current_word = None
+    game_in_progress = False
+    wins = 0
+    guess_count = 0
+
+    for game in games:
+        word = build_word(game)
+        seen_words.append(word)
+        status = read_field(game, "status", default="")
+        if status == "in_progress":
+            current_word = word
+            game_in_progress = True
+        else:
+            guess_count += len(word.guesses)
+            if status in ("completed", "won"):
+                wins += 1
+
+    return Player(
+        name=read_field(user, "name", default=""),
+        current_word=current_word,
+        game_in_progress=game_in_progress,
+        seen_words=seen_words,
+        record=Record(wins=wins, guess_count=guess_count),
+    )
 
 
 def write_players(registered_players: list):
@@ -106,7 +218,9 @@ def find_player(player_name: str, registered_players: list):
     return: Player: found player in the list
     """
     i = next(
-        i for i, player in enumerate(registered_players) if player.get("name").strip().lower() == player_name.strip().lower()
+        i
+        for i, player in enumerate(registered_players)
+        if player.name.strip().lower() == player_name.strip().lower()
     )
     return i, registered_players[i]
 
@@ -122,7 +236,6 @@ def player_to_list(player: Player, idx: int, registered_players: list):
     """
     registered_players[idx] = Player(
         name=player.name,
-        current_word_index=player.current_word_index,
         current_word=player.current_word,
         game_in_progress=player.game_in_progress,
         seen_words=player.seen_words,

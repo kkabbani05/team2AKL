@@ -44,6 +44,10 @@ class GameRead(GameCreate):
     id: int
 
 
+class GameStatusUpdate(CamelModel):
+    status: str
+
+
 class GuessCreate(CamelModel):
     game_id: int
     attempt_no: int
@@ -98,6 +102,22 @@ def create_game(game: GameCreate, session: Session = Depends(create_database_ses
         raise HTTPException(status_code=422, detail="Word already used for this player")
     session.refresh(db_game)
     return db_game
+
+
+@router.put("/games/{game_id}", response_model=GameRead)
+def update_game_status(
+    game_id: int,
+    payload: GameStatusUpdate,
+    session: Session = Depends(create_database_session),
+):
+    game = session.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    game.status = payload.status
+    session.commit()
+    session.refresh(game)
+    return game
 
 
 # Guesses Endpoints

@@ -15,9 +15,11 @@ from utils import (
 
 
 def main():
-    registered_players = load_players()
     args = parse_args()
+    registered_players = []
 
+    if args.command not in ("register", "logout"):
+        registered_players = load_players()
     if args.command in ("register", "login"):
         player_name = args.player_name
     elif args.command == "logout":

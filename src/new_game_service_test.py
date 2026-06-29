@@ -30,7 +30,6 @@ def test_new_game_rejects_when_no_words_available(player_factory, capsys):
             in_progress=False,
             seen_words=seen,
             word="apple",
-            current_word_index=0,
         )
     ]
 
@@ -60,7 +59,6 @@ def test_new_game_starts_and_prints_board(player_factory, monkeypatch, capsys):
 
     new_game_service.new_game("amy", players, words)
 
-    assert players[0].current_word_index == 1
     assert players[0].game_in_progress is True
     assert players[0].current_word.word == "berry"
     assert board_calls["count"] == 1
