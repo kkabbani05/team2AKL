@@ -169,8 +169,8 @@ def update_game_status(game_id: int, status: str):
         return False
     except Exception:
         return False
-<<<<<<< Updated upstream
-    
+
+
 def get_leaderboard():
     try:
         response = requests.get(f"{BASE_URL}/leaderboard")
@@ -179,7 +179,6 @@ def get_leaderboard():
         return
     except Exception:
         return
-=======
 
 
 def submit_player_guess(user_id: int, guess_word: str):
@@ -206,7 +205,12 @@ def submit_player_guess(user_id: int, guess_word: str):
 
         return None, "Error: could not submit guess"
     except requests.exceptions.ConnectionError:
-        return None, "Looks like the wurdal servers are taking a loss... try again later!"
+        return (
+            None,
+            "Looks like the wurdal servers are taking a loss... try again later!",
+        )
     except Exception:
-        return None, "Looks like the wurdal servers are taking a loss... try again later!"
->>>>>>> Stashed changes
+        return (
+            None,
+            "Looks like the wurdal servers are taking a loss... try again later!",
+        )
