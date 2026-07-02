@@ -2,9 +2,9 @@ import sys
 import new_game_service
 import api_client
 import session_manager
-from models import Player, Guess
+from models import Player, Guess, Word
 from board_service import print_board
-from utils import player_to_list, find_player, read_in_word_list
+from utils import player_to_list, find_player, read_in_word_list, feedback_to_colors
 
 
 def guess(player_name: str, guess_string: str, registered_players: list[Player]):
@@ -34,6 +34,9 @@ def guess(player_name: str, guess_string: str, registered_players: list[Player])
     if player not in registered_players:
         print("Error: player not found")
         sys.exit(1)
+
+    if _try_submit_guess_with_api(player_name, guess_string, player):
+        return
 
     word = player.current_word.word
 
@@ -98,6 +101,114 @@ def guess(player_name: str, guess_string: str, registered_players: list[Player])
         print(f"Starting new game for {player.name}:")
         word_list = read_in_word_list()
         new_game_service.new_game(player_name, registered_players, word_list)
+
+
+def _try_submit_guess_with_api(player_name: str, guess_string: str, player: Player):
+    """
+    Try the server-driven guess flow when a matching user session exists.
+    Returns True when handled via API, False when local fallback should continue.
+    """
+    session = session_manager.load_session()
+    if not session:
+        return False
+
+    session_player = str(session.get("player_name", "")).strip().lower()
+    if session_player != player_name.strip().lower():
+        return False
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return False
+
+    response, error = api_client.submit_player_guess(user_id, guess_string)
+    if error:
+        print(error)
+        return True
+
+    _print_board_from_api_response(player, response)
+
+    result = str(response.get("result", "in_progress")).strip().lower()
+    if result == "won":
+        print("🎉 You won! 🎉")
+    elif result == "loss":
+        secret_word = response.get("secret_word")
+        if secret_word is None:
+            secret_word = response.get("secretWord")
+        secret_word = str(secret_word or "")
+        print(f"Game over! The word was {secret_word}.")
+
+    _print_new_game_board_if_started(player, user_id, response)
+
+    return True
+
+
+def _print_board_from_api_response(player: Player, response: dict):
+    """
+    Render board state returned by the API guess endpoint.
+    """
+    length = int(response.get("length") or len(player.current_word.word))
+    guess_rows = response.get("guesses", [])
+
+    rendered_guesses = []
+    for row in guess_rows:
+        guess_word = (
+            str(row.get("guess_word") or row.get("guessWord") or "").strip().lower()
+        )
+        feedback = str(row.get("feedback", "")).strip().upper()
+        colors = feedback_to_colors(feedback)
+        if colors is None:
+            colors = {str(i): "grey" for i in range(len(guess_word))}
+        rendered_guesses.append(Guess(guess=guess_word, colors=colors))
+
+    board_player = Player(
+        name=player.name,
+        current_word=Word(word=("x" * length), guesses=rendered_guesses),
+        game_in_progress=True,
+        seen_words=player.seen_words,
+        record=player.record,
+    )
+    print_board(board_player)
+
+
+def _print_new_game_board_if_started(player: Player, user_id: int, response: dict):
+    """
+    Render the next game board after a win/loss when the API starts a new game.
+    """
+    started_flag = response.get("new_game_started")
+    if started_flag is None:
+        started_flag = response.get("newGameStarted")
+
+    if not started_flag:
+        return
+
+    board_data = api_client.fetch_board(user_id)
+    if not board_data:
+        return
+
+    current = board_data.get("current", {})
+    length = int(current.get("length") or len(player.current_word.word))
+    guess_rows = current.get("guesses", [])
+
+    rendered_guesses = []
+    for row in guess_rows:
+        guess_word = (
+            str(row.get("guess_word") or row.get("guessWord") or "").strip().lower()
+        )
+        feedback = str(row.get("feedback", "")).strip().upper()
+        colors = feedback_to_colors(feedback)
+        if colors is None:
+            colors = {str(i): "grey" for i in range(len(guess_word))}
+        rendered_guesses.append(Guess(guess=guess_word, colors=colors))
+
+    print(f"Starting new game for {player.name}:")
+    new_board_player = Player(
+        name=player.name,
+        current_word=Word(word=("x" * length), guesses=rendered_guesses),
+        game_in_progress=True,
+        seen_words=player.seen_words,
+        record=player.record,
+    )
+    print_board(new_board_player)
 
 
 def persist_guess(player: Player, guess: Guess):

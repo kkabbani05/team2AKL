@@ -5,6 +5,10 @@ import sys
 BASE_URL = "http://localhost:8000"
 
 
+def _auth_headers(user_id: int):
+    return {"Authorization": f"Bearer {user_id}"}
+
+
 def login_with_server(username: str):
     """
     POST /sessions with username, returns (user_id, error) tuple
@@ -54,7 +58,10 @@ def fetch_board(user_id):
     """
 
     try:
-        response = requests.get(f"{BASE_URL}/players/{user_id}/board")
+        response = requests.get(
+            f"{BASE_URL}/players/{user_id}/board",
+            headers=_auth_headers(user_id),
+        )
         if response.status_code == 200:
             return response.json()
         else:
@@ -162,6 +169,7 @@ def update_game_status(game_id: int, status: str):
         return False
     except Exception:
         return False
+<<<<<<< Updated upstream
     
 def get_leaderboard():
     try:
@@ -171,3 +179,34 @@ def get_leaderboard():
         return
     except Exception:
         return
+=======
+
+
+def submit_player_guess(user_id: int, guess_word: str):
+    """
+    POST /players/{user_id}/guess with bearer auth.
+    Returns (response_data, error_message)
+    """
+    payload = {"guess": guess_word.strip().lower()}
+    try:
+        response = requests.post(
+            f"{BASE_URL}/players/{user_id}/guess",
+            json=payload,
+            headers=_auth_headers(user_id),
+        )
+        if response.status_code == 200:
+            return response.json(), None
+
+        if response.status_code == 422:
+            detail = response.json().get("detail")
+            return None, detail or "Error: invalid guess"
+
+        if response.status_code == 403:
+            return None, "Please login to continue"
+
+        return None, "Error: could not submit guess"
+    except requests.exceptions.ConnectionError:
+        return None, "Looks like the wurdal servers are taking a loss... try again later!"
+    except Exception:
+        return None, "Looks like the wurdal servers are taking a loss... try again later!"
+>>>>>>> Stashed changes

@@ -88,10 +88,7 @@ def load_players():
             return []
         return [build_player(user) for user in users]
     except requests.exceptions.ConnectionError:
-        print(
-            "Could not connect to the server. Please make sure the server is running."
-        )
-        return []
+        return None
     except Exception:
         print("An unexpected error occurred while loading players.")
         return []
