@@ -162,3 +162,175 @@ def create_guess(
         raise HTTPException(status_code=422, detail="Attempt number already used for this game")
     session.refresh(db_guess)
     return db_guess
+
+# @router.post("/players/{user_id}/guess")
+# def make_guess(
+#     user_id: int, 
+#     guess: PlayerGuessCreate,
+#     authorization: str | None = Header(default=None),
+#     session: Session = Depends(create_database_session)
+# ):
+    
+#     if not authorization or not authorization.startswith("Bearer "):
+#         return JSONResponse(
+#             status_code=403,
+#             content={"error": {"description": "Access denied"}},
+#         )
+
+#     token = authorization.split(" ", 1)[1].strip()
+#     if token != str(user_id):
+#         return JSONResponse(
+#             status_code=403,
+#             content={"error": {"description": "Access denied"}},
+#         )
+
+#     user = session.query(User).filter(User.id == user_id).first()
+#     if not user:
+#         raise HTTPException(status_code=404, detail="Player not found")
+#     current_game = session.query(Game).filter(Game.user_id == user_id, Game.status == "in_progress").order_by(Game.id.desc()).first()
+    
+#     if not current_game: # create a new game 
+#         current_game = create_new_game_for_user(session, user_id)
+
+    
+#     #use the game_id in the guesses table and count how many columns there are 
+#     attempt_count = session.query(Guess).filter(Guess.game_id == current_game.id).count()
+#     if (attempt_count >= 6):
+#         return "Cannot have an inprogress game with six guesses"
+#     game_id = current_game.id
+#     attempt_no = attempt_count + 1 
+#     guess_word = guess.guess.lower()
+#     print("guess word")
+#     print(guess_word)
+
+#     #get current word, compare against  
+#     correct_word = current_game.word_to_guess.lower()
+#     print("correct word")
+#     print(correct_word)
+#     if len(guess_word) != len(correct_word):
+#         raise HTTPException(status_code=422, detail="Invalid, guess length should be same as word length")
+#     not_actual_feedback = calculate_feedback(correct_word, guess_word)
+    
+#     feedback = ""
+#     for i in range(len(guess_word)):
+#         feedback+= not_actual_feedback[str(i)] + ","
+
+#     feedback = feedback[:-1]
+#     print("feedback")
+#     print(feedback)
+#     letters = [{"letter": guess_word[i].upper(), "match": matches} 
+#            for i, matches in enumerate(feedback.split(","))]
+#     print("letters")
+#     print(letters)
+
+#     #put game_id, attmept_no, guess_word, and feedback in the guesses table 
+#     db_guess = Guess(
+#         game_id=game_id,
+#         attempt_no=attempt_no,
+#         guess_word=guess_word,
+#         feedback=feedback,
+#     )
+#     session.add(db_guess)
+#     try:
+#         session.commit()
+#     except IntegrityError as exc:
+#         session.rollback()
+
+#         # Auto-repair only for duplicate primary-key sequence drift
+#         exc_text = str(exc)
+#         if "guesses_pkey" in exc_text or "duplicate key value violates unique constraint" in exc_text:
+#             repair_guesses_id_sequence(session)
+
+#             # Recreate object after rollback and retry once
+#             db_guess = Guess(
+#                 game_id=game_id,
+#                 attempt_no=attempt_no,
+#                 guess_word=guess_word,
+#                 feedback=feedback,
+#             )
+#             session.add(db_guess)
+#             session.commit()
+#         else:
+#             raise
+#     session.refresh(db_guess)
+
+#     all_guesses = (
+#         session.query(Guess)
+#         .filter(Guess.game_id == current_game.id)
+#         .order_by(Guess.attempt_no.asc())
+#         .all()
+#     )
+#     guesses_payload = []
+#     print(all_guesses)
+#     for g in all_guesses:
+#         match_codes = [m.strip() for m in g.feedback.split(",")]
+
+#         letters_payload = []
+#         for i, ch in enumerate(g.guess_word):
+#             letters_payload.append({
+#                 "letter": ch.upper(),
+#                 "match": match_codes[i],  # "full" / "partial" / "none"
+#             })
+
+#         guesses_payload.append({
+#             "letters": letters_payload
+#         })
+
+#     if current_game:
+#         print({
+#             "id": current_game.id,
+#             "user_id": current_game.user_id,
+#             "word_to_guess": current_game.word_to_guess,
+#             "status": current_game.status,
+#         })
+#     else:
+#         print("No current game found")
+
+#     status = ""
+#     status_to_store = ""
+#     word = None 
+
+#     if (guess_word.lower() == correct_word.lower()):
+#         status = "won"
+#         status_to_store = "won"
+#         word = correct_word.upper()
+#         current_game.status = "won"
+#         session.commit()
+#         session.refresh(current_game)
+
+#         new_game = create_new_game_for_user(session, user_id)
+#     else:
+#         if (attempt_no == 6): 
+#             status = "lost"
+#             status_to_store = "lost"
+#             current_game.status = "lost"
+#             session.commit()
+#             session.refresh(current_game)
+#         else:
+#             status = "in-progress"
+#             status_to_store = "in_progress"
+
+#     if (status == "lost"):
+#         return {
+#             "current": {
+#                 "result": {
+#                     "status": status,
+#                     "word": correct_word.upper()
+#                 }
+#             }
+#         }
+    
+#     return {
+#         "user": {
+#             "id": user.id,
+#             "name": user.name,
+#         },
+#         "current": {
+#             "length": len(guess_word),
+#             "guesses": guesses_payload,
+#             "result": {
+#                 "status": status,
+#                 "word": word,
+#             },
+#         },
+#     }
