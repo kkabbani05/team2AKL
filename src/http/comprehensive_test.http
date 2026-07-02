@@ -211,6 +211,19 @@ Content-Type: application/json
 ### BOARD ENDPOINTS
 ### =================================================
 
+### Mock next guess for current board (guesses: slate, crane, arise)
+POST http://localhost:8000/players/1/guess
+Content-Type: application/json
+Authorization: Bearer 1
+
+{
+    "guess": "stone"
+}
+
+### Verify board after mock guess
+GET http://localhost:8000/players/1/board
+Authorization: Bearer 1
+
 ### Get board for user 1 with valid token
 GET http://localhost:8000/players/1/board
 Authorization: Bearer 1
@@ -256,3 +269,38 @@ GET http://localhost:8000/guesses?game_id=999
 
 ### Get games by non-existent user_id
 GET http://localhost:8000/games?user_id=999
+
+### =================================================
+### GUESS LENGTH VALIDATION (game 15, user 1, word: ASTER)
+### =================================================
+
+### Get current board for user 1 (game 15, 1 guess taken: "board" -> G,G,Y,Y,G)
+GET http://localhost:8000/players/1/board
+Authorization: Bearer 1
+
+### Submit a guess that is too short (4 letters, should return 422)
+POST http://localhost:8000/players/1/guess
+Content-Type: application/json
+Authorization: Bearer 1
+
+{
+    "guess": "star"
+}
+
+### Submit a guess that is too long (6 letters, should return 422)
+POST http://localhost:8000/players/1/guess
+Content-Type: application/json
+Authorization: Bearer 1
+
+{
+    "guess": "buster"
+}
+
+### Submit a valid 5-letter guess (correct length for ASTER)
+POST http://localhost:8000/players/1/guess
+Content-Type: application/json
+Authorization: Bearer 1
+
+{
+    "guess": "aster"
+}
