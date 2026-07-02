@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
 from fastapi_camelcase import CamelModel
+from fastapi.responses import JSONResponse
 
 from app.database import Base, create_database_session
+from app.utils import calculate_feedback
+from app.session_router import User
 
 router = APIRouter()
 
@@ -45,10 +48,11 @@ class GuessCreate(CamelModel):
     guess_word: str
     feedback: str
 
-
 class GuessRead(GuessCreate):
     id: int
 
+class PlayerGuessCreate(CamelModel):
+    guess: str
 
 # Games Endpoints
 @router.get("/games", response_model=list[GameRead])
@@ -120,3 +124,63 @@ def create_guess(
     session.commit()
     session.refresh(db_guess)
     return db_guess
+
+@router.post("/players/{user_id}/guess")
+def make_guess(
+    user_id: int, 
+    guess: PlayerGuessCreate,
+    authorization: str | None = Header(default=None),
+    session: Session = Depends(create_database_session)
+):
+    
+    if not authorization or not authorization.startswith("Bearer "):
+        return JSONResponse(
+            status_code=403,
+            content={"error": {"description": "Access denied"}},
+        )
+
+    token = authorization.split(" ", 1)[1].strip()
+    if token != str(user_id):
+        return JSONResponse(
+            status_code=403,
+            content={"error": {"description": "Access denied"}},
+        )
+
+    user = session.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+
+    current_game = session.query(Game).filter(Game.user_id == user_id, Game.status == "in_progress").order_by(Game.id.desc()).first()
+    #use the game_id in the guesses table and count how many columns there are 
+    attempt_count = session.query(Guess).filter(Guess.game_id == current_game.id).count()
+    if (attempt_count >= 6):
+        return "Cannot have an inprogress game with six guesses"
+    game_id = current_game.id
+    attempt_no = attempt_count + 1 
+    guess_word = guess.guess
+
+    #get current word, compare against  
+    correct_word = current_game.word_to_guess
+    not_actual_feedback = calculate_feedback(correct_word, guess_word)
+    feedback = ""
+    for i in range(len(guess_word)):
+        feedback+= not_actual_feedback[str(i)] + ","
+
+    feedback = feedback[:-1]
+    print(feedback)
+    letters = [{"letter": guess_word[i], "match": matches} 
+           for i, matches in enumerate(feedback.split(","))]
+    print(letters)
+
+    #put game_id, attmept_no, guess_word, and feedback in the guesses table 
+    # db_guess = Guess(
+    #     game_id=game_id,
+    #     attempt_no=attempt_no,
+    #     guess_word=guess_word,
+    #     feedback=feedback,
+    # )
+    # session.add(db_guess)
+    # session.commit()
+
+    return "yo mama"

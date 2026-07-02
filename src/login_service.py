@@ -46,6 +46,8 @@ def login(player_name: str, registered_players: list):
         # For now, just confirm login succeeded
         #board_service.print_board(board_data)
         pass
+    return
+
     # if player does not exist
     if not any(player.get("name").strip().lower() == player_name.strip().lower() for player in registered_players):
         print(f"Could not find user {player_name}. Please register")
