@@ -1,5 +1,7 @@
 import sys
+import os 
 import argparse
+from pathlib import Path
 import requests
 from pydantic import TypeAdapter
 from models import Player, Word, Guess, Record
@@ -22,7 +24,8 @@ def read_in_word_list():
     return: words: list of words for the player to guess.
     """
     try:
-        with open("../src/word_list.txt", "r") as f:
+        word_list_path = Path(__file__).with_name("word_list.txt")
+        with word_list_path.open("r") as f:
             words = f.read().split("\n")
         return words
     except FileNotFoundError:
@@ -196,6 +199,24 @@ def write_players(registered_players: list):
     """
     Writes players to persisted storage
     """
+    ##NEW 
+
+    expected_keys = {
+        "name",
+        "current_word_index",
+        "current_word",
+        "game_in_progress",
+        "seen_words",
+        "record",
+    }
+
+    if not registered_players:
+        return
+
+    if not all(isinstance(player, dict) and expected_keys.issubset(player.keys()) for player in registered_players):
+        return
+
+    ## NEW
     try:
         adapter = TypeAdapter(list[Player])
         json_bytes = adapter.dump_json(registered_players, indent=4)
