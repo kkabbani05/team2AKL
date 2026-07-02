@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0f71694e8aa5a278c8fd5a4cd3992764bbe0a9f9f7b4d5fcfc789937afbf687a"
+            "sha256": "07de9af4c423d6a75062bbd52fcac2109a6ae4148a997b6c3dfae5c3fe154c90"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -65,6 +65,14 @@
             "index": "package-manager.aa.com",
             "markers": "python_version >= '3.10'",
             "version": "==0.138.1"
+        },
+        "fastapi-camelcase": {
+            "hashes": [
+                "sha256:96925a604778b36784a68aeae4ecbbc04936cf4b7f4a09a26ca6292ab2849929"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==2.0.0"
         },
         "h11": {
             "hashes": [

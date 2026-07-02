@@ -14,6 +14,7 @@ app.include_router(leaderboard_router, prefix="/leaderboard", tags=["leaderboard
 app.include_router(board_router, tags=["board"])
 app.include_router(player_router, prefix="/players", tags=["players"])
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     missing_name = any(
