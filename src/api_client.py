@@ -162,3 +162,12 @@ def update_game_status(game_id: int, status: str):
         return False
     except Exception:
         return False
+    
+def get_leaderboard():
+    try:
+        response = requests.get(f"{BASE_URL}/leaderboard")
+        return response.json()
+    except requests.exceptions.ConnectionError:
+        return
+    except Exception:
+        return

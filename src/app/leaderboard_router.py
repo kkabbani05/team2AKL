@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import create_database_session
 from app.models import User
-
-import random   # Generate random wins and losses for users
+from app.games_guesses_router import Game, Guess
 
 router = APIRouter()
 
@@ -15,14 +14,31 @@ def get_leaderboard(session: Session = Depends(create_database_session)):
     }
 
     all_users = session.query(User).all()
-    for user in all_users:
-        wins = random.randint(0, 10)
+    
+    for user in all_users:        
         lb_player = {
             "name": user.name,
-            "wins": wins,
-            "losses": random.randint(0, 20),
-            "average_guesses": get_average_guesses([random.randint(1, 6) for _ in range(wins)])
+            "wins": 0,
+            "losses": 0,
+            "average_guesses": 0.0
         }
+        all_games = session.query(Game).filter(user.id == Game.user_id)
+        guess_list = []
+        for game in all_games:
+            if game.status == "in-progress":
+                continue
+            elif game.status == "won":
+                lb_player["wins"] += 1
+            elif game.status == "lost":
+                lb_player["losses"] += 1
+
+            all_guesses = session.query(Guess).filter(game.id == Guess.game_id)
+            total_guesses = 0
+            for _ in all_guesses:   # len() does not work on query
+                total_guesses += 1
+            guess_list.append(total_guesses)
+        lb_player["average_guesses"] = get_average_guesses(guess_list)
+
         leaderboard.get("players").append(lb_player)
 
     leaderboard.get("players").sort(key=lambda player: player.get("average_guesses"))
