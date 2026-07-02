@@ -46,7 +46,7 @@ def main():
             find_player(player_name, registered_players)[1], "board"
         )
     elif args.command == "leaderboard":
-        leaderboard_service.leaderboard(registered_players)
+        leaderboard_service.leaderboard()
     elif args.command == "login":
         login_service.login(args.player_name, registered_players)
     elif args.command == "logout":
