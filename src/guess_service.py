@@ -1,5 +1,7 @@
 import sys
 import new_game_service
+import api_client
+import session_manager
 from models import Player, Guess
 from board_service import print_board
 from utils import player_to_list, find_player, read_in_word_list
@@ -14,7 +16,10 @@ def guess(player_name: str, guess_string: str, registered_players: list[Player])
     :param registered_players: a list of player objects
     """
 
-    if not any(player.get("name").strip().lower() == player_name.strip().lower() for player in registered_players):
+    if not any(
+        player.name.strip().lower() == player_name.strip().lower()
+        for player in registered_players
+    ):
         print("Error: player not found")
         sys.exit(1)
 
@@ -75,19 +80,83 @@ def guess(player_name: str, guess_string: str, registered_players: list[Player])
 
     new_guess = Guess(guess=guess_string, colors=colors)
     player.current_word.guesses.append(new_guess)
+
+    persist_guess(player, new_guess)
+
     player = player_to_list(player, idx, registered_players)
     print_board(player)
 
     if win:
-        print(f"{player.get("name")} solved it in {len(player.current_word.guesses)} guesses!")
+        print(f"{player.name} solved it in {len(player.current_word.guesses)} guesses!")
 
     if win or lose:
+        end_status = "won" if win else "loss"
+        persist_game_status(player, end_status)
         player.game_in_progress = False
-        print(f"Game over for {player.get("name")}.")
+        print(f"Game over for {player.name}.")
         print(f"The word was: {player.current_word.word}")
-        print(f"Starting new game for {player.get("name")}:")
+        print(f"Starting new game for {player.name}:")
         word_list = read_in_word_list()
         new_game_service.new_game(player_name, registered_players, word_list)
+
+
+def persist_guess(player: Player, guess: Guess):
+    """
+    Persist a guess to the API backend when a user session is available.
+    """
+    session = session_manager.load_session()
+    if not session:
+        return
+
+    session_player = str(session.get("player_name", "")).strip().lower()
+    if session_player != player.name.strip().lower():
+        return
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return
+
+    game_id = api_client.find_active_game_id(user_id, player.current_word.word)
+    if not game_id:
+        return
+
+    attempt_no = len(player.current_word.guesses)
+    feedback = feedback_from_colors(guess.colors)
+    api_client.create_guess(game_id, attempt_no, guess.guess, feedback)
+
+
+def persist_game_status(player: Player, status: str):
+    """
+    Persist game completion status to the API backend when a matching session exists.
+    """
+    session = session_manager.load_session()
+    if not session:
+        return
+
+    session_player = str(session.get("player_name", "")).strip().lower()
+    if session_player != player.name.strip().lower():
+        return
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return
+
+    game_id = api_client.find_active_game_id(user_id, player.current_word.word)
+    if not game_id:
+        return
+
+    api_client.update_game_status(game_id, status)
+
+
+def feedback_from_colors(colors: dict[str, str]):
+    """
+    Convert in-memory tile colors to API feedback tokens.
+    """
+    token_map = {"green": "GR", "yellow": "Y", "grey": "G"}
+    feedback_tokens = [
+        token_map.get(colors.get(str(i), "grey"), "G") for i in range(len(colors))
+    ]
+    return ",".join(feedback_tokens)
 
 
 def guess_validation(guess_string: str, word: str):

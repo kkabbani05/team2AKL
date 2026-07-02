@@ -71,8 +71,8 @@ Content-Type: application/json
 }
 
 ### Successful board retrieval
-GET http://localhost:8000/players/3/board
-Authorization: Bearer 3
+GET http://localhost:8000/players/33/board
+Authorization: Bearer 33
 
 ### Missing auth header
 GET http://localhost:8000/players/33/board
@@ -88,4 +88,49 @@ Content-Type: application/json
 
 {
   "guess": "bubbly"
+}
+
+###
+POST http://localhost:8000/players/33/guess
+Authorization: Bearer 33
+Content-Type: application/json
+
+{
+  "guess": "burble"
+}
+
+###
+POST http://localhost:8000/players/33/guess
+Authorization: Bearer 33
+Content-Type: application/json
+
+{
+  "guess": "barden"
+}
+
+###
+POST http://localhost:8000/players/33/guess
+Authorization: Bearer 33
+Content-Type: application/json
+
+{
+  "guess": "harden"
+}
+
+###
+POST http://localhost:8000/players/33/guess
+Authorization: Bearer 33
+Content-Type: application/json
+
+{
+  "guess": "pants"
+}
+
+###
+POST http://localhost:8000/players/33/guess
+Authorization: Bearer 33
+Content-Type: application/json
+
+{
+  "guess": "stand"
 }

@@ -10,25 +10,31 @@ from app.session_router import User
 router = APIRouter()
 
 
-class BoardGuessRead(CamelModel):
-    attempt_no: int
-    guess_word: str
-    feedback: str
+class BoardLetterRead(CamelModel):
+    letter: str
+    match: str
 
+class BoardGuessRead(CamelModel):
+    letters: list[BoardLetterRead]
+
+class BoardResultRead(CamelModel):
+    status: str
+    word: str | None
 
 class BoardCurrentRead(CamelModel):
     length: int
     guesses: list[BoardGuessRead]
-
+    result: BoardResultRead
 
 class BoardUserRead(CamelModel):
     id: int
     name: str
 
-
 class BoardRead(CamelModel):
     user: BoardUserRead
     current: BoardCurrentRead
+
+#-------------------------
 
 
 @router.get("/players/{user_id}/board", response_model=BoardRead)
@@ -90,17 +96,26 @@ def get_player_board(
         .all()
     )
 
+    guess_list = []
+    for guess in guesses:
+        letters = [{"letter": guess.guess_word[i].upper(), "match": matches} 
+           for i, matches in enumerate(guess.feedback.split(","))]
+        guess_list.append(letters)
+    
+
     return {
         "user": {"id": user.id, "name": user.name},
         "current": {
             "length": len(current_game.word_to_guess),
             "guesses": [
                 {
-                    "attempt_no": guess.attempt_no,
-                    "guess_word": guess.guess_word,
-                    "feedback": guess.feedback,
+                    "letters": guess
                 }
-                for guess in guesses
+                for guess in guess_list
             ],
+            "result": {
+                "status": current_game.status,
+                "word": None
+            }
         },
     }

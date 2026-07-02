@@ -13,7 +13,6 @@ def player_factory():
         seen_words=None,
         wins=0,
         guess_count=0,
-        current_word_index=0,
     ):
         if guesses is None:
             guesses = []
@@ -29,7 +28,6 @@ def player_factory():
 
         return Player(
             name=name,
-            current_word_index=current_word_index,
             current_word=current_word,
             game_in_progress=in_progress,
             seen_words=seen_words,
