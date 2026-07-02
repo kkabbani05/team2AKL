@@ -127,13 +127,26 @@ def _try_submit_guess_with_api(player_name: str, guess_string: str, player: Play
 
     _print_board_from_api_response(player, response)
 
-    result = str(response.get("result", "in_progress")).strip().lower()
+    current = response.get("current", {}) if isinstance(response, dict) else {}
+    result_payload = current.get("result") if isinstance(current, dict) else None
+    if result_payload is None:
+        result_payload = response.get("result") if isinstance(response, dict) else None
+
+    if isinstance(result_payload, dict):
+        result = str(result_payload.get("status", "in_progress")).strip().lower()
+    else:
+        result = str(result_payload or "in_progress").strip().lower()
+
     if result == "won":
         print("🎉 You won! 🎉")
-    elif result == "loss":
-        secret_word = response.get("secret_word")
-        if secret_word is None:
-            secret_word = response.get("secretWord")
+    elif result in ("loss", "lost"):
+        secret_word = None
+        if isinstance(result_payload, dict):
+            secret_word = result_payload.get("word")
+        if secret_word is None and isinstance(response, dict):
+            secret_word = response.get("secret_word")
+            if secret_word is None:
+                secret_word = response.get("secretWord")
         secret_word = str(secret_word or "")
         print(f"Game over! The word was {secret_word}.")
 
@@ -146,19 +159,25 @@ def _print_board_from_api_response(player: Player, response: dict):
     """
     Render board state returned by the API guess endpoint.
     """
-    length = int(response.get("length") or len(player.current_word.word))
-    guess_rows = response.get("guesses", [])
+    current = response.get("current", {}) if isinstance(response, dict) else {}
+    length = int(
+        (current.get("length") if isinstance(current, dict) else None)
+        or response.get("length")
+        or len(player.current_word.word)
+    )
+    guess_rows = []
+    if isinstance(current, dict):
+        guess_rows = current.get("guesses", [])
+    if not isinstance(guess_rows, list):
+        guess_rows = response.get("guesses", []) if isinstance(response, dict) else []
+    if not isinstance(guess_rows, list):
+        guess_rows = []
 
     rendered_guesses = []
     for row in guess_rows:
-        guess_word = (
-            str(row.get("guess_word") or row.get("guessWord") or "").strip().lower()
-        )
-        feedback = str(row.get("feedback", "")).strip().upper()
-        colors = feedback_to_colors(feedback)
-        if colors is None:
-            colors = {str(i): "grey" for i in range(len(guess_word))}
-        rendered_guesses.append(Guess(guess=guess_word, colors=colors))
+        parsed_guess = _parse_guess_row(row)
+        if parsed_guess is not None:
+            rendered_guesses.append(parsed_guess)
 
     board_player = Player(
         name=player.name,
@@ -191,14 +210,9 @@ def _print_new_game_board_if_started(player: Player, user_id: int, response: dic
 
     rendered_guesses = []
     for row in guess_rows:
-        guess_word = (
-            str(row.get("guess_word") or row.get("guessWord") or "").strip().lower()
-        )
-        feedback = str(row.get("feedback", "")).strip().upper()
-        colors = feedback_to_colors(feedback)
-        if colors is None:
-            colors = {str(i): "grey" for i in range(len(guess_word))}
-        rendered_guesses.append(Guess(guess=guess_word, colors=colors))
+        parsed_guess = _parse_guess_row(row)
+        if parsed_guess is not None:
+            rendered_guesses.append(parsed_guess)
 
     print(f"Starting new game for {player.name}:")
     new_board_player = Player(
@@ -268,6 +282,36 @@ def feedback_from_colors(colors: dict[str, str]):
         token_map.get(colors.get(str(i), "grey"), "G") for i in range(len(colors))
     ]
     return ",".join(feedback_tokens)
+
+
+def _parse_guess_row(row: dict):
+    """
+    Parse a guess row from either API format:
+    1) legacy: {guess_word/guessWord, feedback}
+    2) new: {letters: [{letter, match}, ...]}
+    Returns Guess or None if row is not parseable.
+    """
+    letters = row.get("letters")
+    if isinstance(letters, list) and letters:
+        guess_word = "".join(str(item.get("letter", "")) for item in letters).strip().lower()
+        token_map = {"full": "GR", "partial": "Y", "none": "G"}
+        feedback_tokens = [
+            token_map.get(str(item.get("match", "")).strip().lower(), "G")
+            for item in letters
+        ]
+        feedback = ",".join(feedback_tokens)
+    else:
+        guess_word = str(row.get("guess_word") or row.get("guessWord") or "").strip().lower()
+        feedback = str(row.get("feedback", "")).strip().upper()
+
+    if not guess_word:
+        return None
+
+    colors = feedback_to_colors(feedback)
+    if colors is None:
+        colors = {str(i): "grey" for i in range(len(guess_word))}
+
+    return Guess(guess=guess_word, colors=colors)
 
 
 def guess_validation(guess_string: str, word: str):

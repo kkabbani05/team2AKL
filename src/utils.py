@@ -9,7 +9,14 @@ from models import Player, Word, Guess, Record
 BASE_URL = "http://localhost:8000"
 
 # Maps the DB feedback codes to the colors used by the CLI board.
-FEEDBACK_COLORS = {"GR": "green", "Y": "yellow", "G": "grey"}
+FEEDBACK_COLORS = {
+    "GR": "green",
+    "Y": "yellow",
+    "G": "grey",
+    "FULL": "green",
+    "PARTIAL": "yellow",
+    "NONE": "grey",
+}
 
 
 class WurdalArgumentParser(argparse.ArgumentParser):

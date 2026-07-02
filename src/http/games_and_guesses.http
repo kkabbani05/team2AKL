@@ -127,10 +127,11 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:8000/players/33/guess
-Authorization: Bearer 33
+POST http://localhost:8000/players/5/guess
+Authorization: Bearer 5
 Content-Type: application/json
 
 {
-  "guess": "stand"
+  "guess": "passed"
 }
+

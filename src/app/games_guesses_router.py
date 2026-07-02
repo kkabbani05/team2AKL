@@ -330,6 +330,7 @@ def make_guess(
     status_to_store = ""
     word = None 
 
+    print(current_game.user_id)
     if (guess_word.lower() == correct_word.lower()):
         status = "won"
         status_to_store = "won"
@@ -346,6 +347,7 @@ def make_guess(
             current_game.status = "lost"
             session.commit()
             session.refresh(current_game)
+            new_game = create_new_game_for_user(session, user_id)
         else:
             status = "in-progress"
             status_to_store = "in_progress"
