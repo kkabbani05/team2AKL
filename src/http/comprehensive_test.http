@@ -1,0 +1,258 @@
+### Comprehensive API Test Suite for Wurdal
+
+### =================================================
+### SESSIONS / REGISTRATION ENDPOINTS
+### =================================================
+
+### Register a new player
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "Alice"
+}
+
+### Register another player
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "Bob"
+}
+
+### Register a third player for testing
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "Charlie"
+}
+
+### Get all registered players
+GET http://localhost:8000/sessions
+
+### Attempt to register with empty name (should fail)
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "     "
+}
+
+### Attempt to register without name field (should fail with custom error)
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{}
+
+### Attempt to register with duplicate name (should fail) 
+POST http://localhost:8000/players
+Content-Type: application/json
+
+{
+    "name": "Alice"
+}
+
+### =================================================
+### GAMES ENDPOINTS
+### =================================================
+
+### Get all games
+GET http://localhost:8000/games
+
+### Get games for user 1 
+GET http://localhost:8000/games?user_id=1
+
+### Get games for user 2
+GET http://localhost:8000/games?user_id=2
+
+### Create a new game for user 1
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "word_to_guess": "PLANT",
+    "status": "in_progress"
+}
+
+### Create another game for user 1 (completed)
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "word_to_guess": "WATER",
+    "status": "completed"
+}
+
+### Attempt to create a duplicate word for user 1 (should fail)
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "word_to_guess": "PLANT",
+    "status": "in_progress"
+}
+
+### Create a game for user 2
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 2,
+    "word_to_guess": "BEACH",
+    "status": "in_progress"
+}
+
+### Create a game for user 3
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 3,
+    "word_to_guess": "STONE",
+    "status": "in_progress"
+}
+
+### Get first game by ID
+GET http://localhost:8000/games/1
+
+### Get second game by ID
+GET http://localhost:8000/games/2
+
+### Get non-existent game (should fail)
+GET http://localhost:8000/games/999
+
+### =================================================
+### GUESSES ENDPOINTS
+### =================================================
+
+### Get all guesses
+GET http://localhost:8000/guesses
+
+### Get guesses for game 1
+GET http://localhost:8000/guesses?game_id=1
+
+### Add first guess to game 1 --Check why
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 1,
+    "attempt_no": 1,
+    "guess_word": "TRAIN",
+    "feedback": "YE,GR,YE,YE,YE"
+}
+
+### Add second guess to game 1
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 1,
+    "attempt_no": 2,
+    "guess_word": "PLANT",
+    "feedback": "GR,GR,GR,GR,GR"
+}
+
+### Add guesses to game 2
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 2,
+    "attempt_no": 1,
+    "guess_word": "WATER",
+    "feedback": "GR,GR,GR,GR,GR"
+}
+
+### Add guess to game 3
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 3,
+    "attempt_no": 1,
+    "guess_word": "STONE",
+    "feedback": "GR,GR,GR,GR,GR"
+}
+
+### Add multiple guesses to game 4
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 3,
+    "attempt_no": 2,
+    "guess_word": "BEACH",
+    "feedback": "YE,YE,YE,YE,YE"
+}
+
+### Get a specific guess by ID
+GET http://localhost:8000/guesses/1
+
+### Get another specific guess
+GET http://localhost:8000/guesses/2
+
+### Add guess to non-existent game (should fail)
+POST http://localhost:8000/guesses
+Content-Type: application/json
+
+{
+    "game_id": 999,
+    "attempt_no": 1,
+    "guess_word": "WORDS",
+    "feedback": "GR,GR,GR,GR,GR"
+}
+
+### =================================================
+### BOARD ENDPOINTS
+### =================================================
+
+### Get board for user 1 with valid token
+GET http://localhost:8000/players/1/board
+Authorization: Bearer 1
+
+### Get board for user 2 with valid token
+GET http://localhost:8000/players/2/board
+Authorization: Bearer 2
+
+### Get board for user 3 with valid token
+GET http://localhost:8000/players/3/board
+Authorization: Bearer 3
+
+### Attempt board access without authorization header (should fail)
+GET http://localhost:8000/players/1/board
+
+### Attempt board access with invalid token (should fail)
+GET http://localhost:8000/players/1/board
+Authorization: Bearer invalid-token
+
+### Attempt board access with wrong user ID (should fail)
+GET http://localhost:8000/players/1/board
+Authorization: Bearer 2
+
+### Attempt to get board for non-existent user (should fail)
+GET http://localhost:8000/players/999/board
+Authorization: Bearer 999
+
+### =================================================
+### EDGE CASES AND ERROR HANDLING
+### =================================================
+
+### Create game without required field (should fail)
+POST http://localhost:8000/games
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "word_to_guess": "PLANT"
+}
+
+### Get guesses by non-existent game_id
+GET http://localhost:8000/guesses?game_id=999
+
+### Get games by non-existent user_id
+GET http://localhost:8000/games?user_id=999

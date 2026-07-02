@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
+from sqlalchemy import UniqueConstraint
+from sqlalchemy.exc import IntegrityError
 from fastapi_camelcase import CamelModel
 
 from app.database import Base, create_database_session
@@ -10,6 +12,9 @@ router = APIRouter()
 
 class Game(Base):
     __tablename__ = "games"
+    __table_args__ = (
+        UniqueConstraint("user_id", "word_to_guess", name="uix_user_word_to_guess"),
+    )
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -37,6 +42,10 @@ class GameCreate(CamelModel):
 
 class GameRead(GameCreate):
     id: int
+
+
+class GameStatusUpdate(CamelModel):
+    status: str
 
 
 class GuessCreate(CamelModel):
@@ -71,15 +80,44 @@ def get_game(game_id: int, session: Session = Depends(create_database_session)):
 
 @router.post("/games", response_model=GameRead)
 def create_game(game: GameCreate, session: Session = Depends(create_database_session)):
+    word_to_guess = game.word_to_guess.strip().upper()
+    existing_game = (
+        session.query(Game)
+        .filter(Game.user_id == game.user_id, Game.word_to_guess == word_to_guess)
+        .first()
+    )
+    if existing_game:
+        raise HTTPException(status_code=422, detail="Word already used for this player")
+
     db_game = Game(
         user_id=game.user_id,
-        word_to_guess=game.word_to_guess,
+        word_to_guess=word_to_guess,
         status=game.status,
     )
     session.add(db_game)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=422, detail="Word already used for this player")
     session.refresh(db_game)
     return db_game
+
+
+@router.put("/games/{game_id}", response_model=GameRead)
+def update_game_status(
+    game_id: int,
+    payload: GameStatusUpdate,
+    session: Session = Depends(create_database_session),
+):
+    game = session.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    game.status = payload.status
+    session.commit()
+    session.refresh(game)
+    return game
 
 
 # Guesses Endpoints
@@ -117,6 +155,10 @@ def create_guess(
         feedback=guess.feedback,
     )
     session.add(db_guess)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=422, detail="Attempt number already used for this game")
     session.refresh(db_guess)
     return db_guess

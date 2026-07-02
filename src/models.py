@@ -18,7 +18,6 @@ class Record(BaseModel):
 
 class Player(BaseModel):
     name: str
-    current_word_index: int
     current_word: Word | None = None
     game_in_progress: bool
     seen_words: list[Word]
