@@ -145,10 +145,15 @@ def submit_guess(
 
     normalized_guess = payload.guess.strip().lower()
     expected_length = len(game.word_to_guess)
-    if not normalized_guess.isalpha() or len(normalized_guess) != expected_length:
+    if len(normalized_guess) != expected_length:
+        return JSONResponse(
+            status_code=422,
+            content={"error": {"description": f"Guess must be exactly {expected_length} letters"}},
+        )
+    if not normalized_guess.isalpha():
         raise HTTPException(
             status_code=422,
-            detail=f"Guess must be exactly {expected_length} letters",
+            detail="Guess must contain only letters",
         )
 
     guesses = (
