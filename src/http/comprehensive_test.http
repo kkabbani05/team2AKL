@@ -211,6 +211,19 @@ Content-Type: application/json
 ### BOARD ENDPOINTS
 ### =================================================
 
+### Mock next guess for current board (guesses: slate, crane, arise)
+POST http://localhost:8000/players/1/guess
+Content-Type: application/json
+Authorization: Bearer 1
+
+{
+    "guess": "stone"
+}
+
+### Verify board after mock guess
+GET http://localhost:8000/players/1/board
+Authorization: Bearer 1
+
 ### Get board for user 1 with valid token
 GET http://localhost:8000/players/1/board
 Authorization: Bearer 1

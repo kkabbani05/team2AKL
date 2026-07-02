@@ -20,6 +20,15 @@ def main():
 
     if args.command not in ("register", "logout"):
         registered_players = load_players()
+        if registered_players is None:
+            if args.command == "guess":
+                session = session_manager.load_session()
+                if session and session.get("player_name"):
+                    print(
+                        "Looks like the wurdal servers are taking a loss... try again later!"
+                    )
+                    return
+            registered_players = []
     if args.command in ("register", "login"):
         player_name = args.player_name
     elif args.command == "logout":
